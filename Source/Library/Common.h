@@ -13,3 +13,12 @@
 #endif // ! UNICODE
 
 #include <windows.h>
+
+#include <d3d11_4.h>
+#include <directxcolors.h>
+
+#include "Resource.h"
+
+constexpr LPCWSTR PSZ_COURSE_TITLE = L"Game Graphics Programming";
+
+using namespace DirectX;
