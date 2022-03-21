@@ -1,11 +1,16 @@
 ﻿#include "Game/Game.h"
+#include <wrl.h>
 
 namespace library
 {
+    using namespace Microsoft::WRL;
+
     HINSTANCE               g_hInst = nullptr;
     HWND                    g_hWnd = nullptr;
     D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
     D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
+
+    /*
     ID3D11Device* g_pd3dDevice = nullptr;
     ID3D11Device1* g_pd3dDevice1 = nullptr;
     ID3D11DeviceContext* g_pImmediateContext = nullptr;
@@ -13,6 +18,15 @@ namespace library
     IDXGISwapChain* g_pSwapChain = nullptr;
     IDXGISwapChain1* g_pSwapChain1 = nullptr;
     ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
+    */
+
+    ComPtr<ID3D11Device> g_pd3dDevice;
+    ComPtr<ID3D11Device1> g_pd3dDevice1;
+    ComPtr<ID3D11DeviceContext> g_pImmediateContext;
+    ComPtr<ID3D11DeviceContext1> g_pImmediateContext1;
+    ComPtr<IDXGISwapChain> g_pSwapChain;
+    ComPtr<IDXGISwapChain1> g_pSwapChain1;
+    ComPtr<ID3D11RenderTargetView> g_pRenderTargetView;
 
     /*--------------------------------------------------------------------
       Forward declarations
@@ -20,7 +34,7 @@ namespace library
     HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
     HRESULT InitDevice();
     void CleanupDevice();
-    LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+    //LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
     void Render();
 
 
@@ -129,35 +143,44 @@ namespace library
             return hr;
 
         // Obtain DXGI factory from device (since we used nullptr for pAdapter above)
-        IDXGIFactory1* dxgiFactory = nullptr;
+        //IDXGIFactory1* dxgiFactory = nullptr;
+        ComPtr<IDXGIFactory1> dxgiFactory;
         {
-            IDXGIDevice* dxgiDevice = nullptr;
-            hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
-            if (SUCCEEDED(hr))
+            ComPtr<IDXGIDevice> dxgiDevice;
+            //IDXGIDevice* dxgiDevice = nullptr;
+            //hr = g_pd3dDevice->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice));
+
+            if (SUCCEEDED(g_pd3dDevice.As(&dxgiDevice)))
             {
-                IDXGIAdapter* adapter = nullptr;
-                hr = dxgiDevice->GetAdapter(&adapter);
-                if (SUCCEEDED(hr))
+                ComPtr<IDXGIAdapter> adapter;
+                if (SUCCEEDED(dxgiDevice.As(&adapter)))
                 {
-                    hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&dxgiFactory));
-                    adapter->Release();
+                    hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(dxgiFactory.GetAddressOf()));
+                    //hr = adapter->GetParent(IID_PPV_ARGS(dxgiFactory.GetAddressOf()));
                 }
-                dxgiDevice->Release();
             }
         }
         if (FAILED(hr))
             return hr;
 
         // Create swap chain
-        IDXGIFactory2* dxgiFactory2 = nullptr;
-        hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
+        //IDXGIFactory2* dxgiFactory2 = nullptr;
+
+        ComPtr<IDXGIFactory2> dxgiFactory2;
+
+        //hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
+
+        dxgiFactory.As(&dxgiFactory2);
+
         if (dxgiFactory2)
         {
             // DirectX 11.1 or later
-            hr = g_pd3dDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&g_pd3dDevice1));
-            if (SUCCEEDED(hr))
+            //hr = g_pd3dDevice->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void**>(&g_pd3dDevice1));
+
+            if (SUCCEEDED(g_pd3dDevice.As(&g_pd3dDevice1)))
             {
-                (void)g_pImmediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&g_pImmediateContext1));
+                (void)g_pImmediateContext.As(&g_pImmediateContext1);
+                //(void)g_pImmediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&g_pImmediateContext1));
             }
 
             DXGI_SWAP_CHAIN_DESC1 sd = {};
@@ -169,13 +192,17 @@ namespace library
             sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
             sd.BufferCount = 1;
 
-            hr = dxgiFactory2->CreateSwapChainForHwnd(g_pd3dDevice, g_hWnd, &sd, nullptr, nullptr, &g_pSwapChain1);
+
+            //hr = dxgiFactory2->CreateSwapChainForHwnd(g_pd3dDevice, g_hWnd, &sd, nullptr, nullptr, &g_pSwapChain1);
+
+            hr = dxgiFactory2->CreateSwapChainForHwnd(g_pd3dDevice.Get(), g_hWnd, &sd, nullptr, nullptr, &g_pSwapChain1);
             if (SUCCEEDED(hr))
             {
-                hr = g_pSwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&g_pSwapChain));
+                //hr = g_pSwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void**>(&g_pSwapChain));
+                g_pSwapChain1.As(&g_pSwapChain);
             }
 
-            dxgiFactory2->Release();
+            //dxgiFactory2->Release();
         }
         else
         {
@@ -193,29 +220,33 @@ namespace library
             sd.SampleDesc.Quality = 0;
             sd.Windowed = TRUE;
 
-            hr = dxgiFactory->CreateSwapChain(g_pd3dDevice, &sd, &g_pSwapChain);
+            //hr = dxgiFactory->CreateSwapChain(g_pd3dDevice, &sd, &g_pSwapChain);
+            hr = dxgiFactory->CreateSwapChain(g_pd3dDevice.Get(), &sd, g_pSwapChain.GetAddressOf());
         }
 
         // Note this tutorial doesn't handle full-screen swapchains so we block the ALT+ENTER shortcut
         dxgiFactory->MakeWindowAssociation(g_hWnd, DXGI_MWA_NO_ALT_ENTER);
 
-        dxgiFactory->Release();
+        //dxgiFactory->Release();
 
         if (FAILED(hr))
             return hr;
 
         // Create a render target view
-        ID3D11Texture2D* pBackBuffer = nullptr;
-        hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
+        ComPtr<ID3D11Texture2D> pBackBuffer;
+        //ID3D11Texture2D* pBackBuffer = nullptr;
+
+        hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(pBackBuffer.GetAddressOf()));
+
         if (FAILED(hr))
             return hr;
 
-        hr = g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_pRenderTargetView);
-        pBackBuffer->Release();
+        hr = g_pd3dDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, g_pRenderTargetView.GetAddressOf());
+        //pBackBuffer->Release();
         if (FAILED(hr))
             return hr;
 
-        g_pImmediateContext->OMSetRenderTargets(1, &g_pRenderTargetView, nullptr);
+        g_pImmediateContext->OMSetRenderTargets(1, g_pRenderTargetView.GetAddressOf(), nullptr);
 
         // Setup the viewport
         D3D11_VIEWPORT vp;
@@ -235,7 +266,7 @@ namespace library
     void Render()
     {
         // Just clear the backbuffer
-        g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, Colors::MidnightBlue);
+        g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView.Get(), Colors::MidnightBlue);
         g_pSwapChain->Present(0, 0);
     }
 
@@ -244,13 +275,13 @@ namespace library
     {
         if (g_pImmediateContext) g_pImmediateContext->ClearState();
 
-        if (g_pRenderTargetView) g_pRenderTargetView->Release();
-        if (g_pSwapChain1) g_pSwapChain1->Release();
-        if (g_pSwapChain) g_pSwapChain->Release();
-        if (g_pImmediateContext1) g_pImmediateContext1->Release();
-        if (g_pImmediateContext) g_pImmediateContext->Release();
-        if (g_pd3dDevice1) g_pd3dDevice1->Release();
-        if (g_pd3dDevice) g_pd3dDevice->Release();
+        if (g_pRenderTargetView) g_pRenderTargetView.Reset();
+        if (g_pSwapChain1) g_pSwapChain1.Reset();
+        if (g_pSwapChain) g_pSwapChain.Reset();
+        if (g_pImmediateContext1) g_pImmediateContext1.Reset();
+        if (g_pImmediateContext) g_pImmediateContext.Reset();
+        if (g_pd3dDevice1) g_pd3dDevice1.Reset()();
+        if (g_pd3dDevice) g_pd3dDevice.Reset()();
     }
 
     LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
