@@ -34,7 +34,7 @@ namespace library
     HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
     HRESULT InitDevice();
     void CleanupDevice();
-    //LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+    LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
     void Render();
 
 
@@ -155,8 +155,8 @@ namespace library
                 ComPtr<IDXGIAdapter> adapter;
                 if (SUCCEEDED(dxgiDevice.As(&adapter)))
                 {
-                    hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(dxgiFactory.GetAddressOf()));
-                    //hr = adapter->GetParent(IID_PPV_ARGS(dxgiFactory.GetAddressOf()));
+                    //hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(dxgiFactory.GetAddressOf()));
+                    hr = adapter->GetParent(IID_PPV_ARGS(dxgiFactory.GetAddressOf()));
                 }
             }
         }
@@ -165,13 +165,44 @@ namespace library
 
         // Create swap chain
         //IDXGIFactory2* dxgiFactory2 = nullptr;
+        
+        DXGI_SWAP_CHAIN_DESC desc;
+        ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
+        desc.Windowed = TRUE;
+        desc.BufferCount = 2;
+        desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        desc.SampleDesc.Count = 1;      //multisampling setting
+        desc.SampleDesc.Quality = 0;    //vendor-specific flag
+        desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        desc.OutputWindow = g_hWnd;
 
-        ComPtr<IDXGIFactory2> dxgiFactory2;
+        //ComPtr<IDXGIFactory2> dxgiFactory2;
 
         //hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
 
-        dxgiFactory.As(&dxgiFactory2);
+        //dxgiFactory.As(&dxgiFactory2);
 
+        Microsoft::WRL::ComPtr<IDXGIDevice3> dxgiDevice;
+        g_pd3dDevice.As(&dxgiDevice);
+
+        ComPtr<IDXGIAdapter> adapter;
+        ComPtr<IDXGIFactory> factory;
+
+        hr = dxgiDevice->GetAdapter(&adapter);
+
+        if (SUCCEEDED(hr))
+        {
+            adapter->GetParent(IID_PPV_ARGS(&factory));
+
+            hr = factory->CreateSwapChain(
+                g_pd3dDevice.Get(),
+                &desc,
+                &g_pSwapChain
+            );
+        }
+        
+        /*
         if (dxgiFactory2)
         {
             // DirectX 11.1 or later
@@ -232,9 +263,10 @@ namespace library
         if (FAILED(hr))
             return hr;
 
+        */
+
         // Create a render target view
         ComPtr<ID3D11Texture2D> pBackBuffer;
-        //ID3D11Texture2D* pBackBuffer = nullptr;
 
         hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(pBackBuffer.GetAddressOf()));
 
@@ -280,8 +312,8 @@ namespace library
         if (g_pSwapChain) g_pSwapChain.Reset();
         if (g_pImmediateContext1) g_pImmediateContext1.Reset();
         if (g_pImmediateContext) g_pImmediateContext.Reset();
-        if (g_pd3dDevice1) g_pd3dDevice1.Reset()();
-        if (g_pd3dDevice) g_pd3dDevice.Reset()();
+        if (g_pd3dDevice1) g_pd3dDevice1.Reset();
+        if (g_pd3dDevice) g_pd3dDevice.Reset();
     }
 
     LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
