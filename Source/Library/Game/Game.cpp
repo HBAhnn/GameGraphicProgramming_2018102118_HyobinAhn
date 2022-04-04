@@ -15,10 +15,8 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: Game::Game definition (remove the comment)
     --------------------------------------------------------------------*/
-	Game::Game(PCWSTR pszGameName) {
-		m_pszGameName = pszGameName;
-		m_mainWindow = std::unique_ptr<MainWindow>(new MainWindow);
-		m_renderer = std::unique_ptr<Renderer>(new Renderer);
+	Game::Game(_In_ PCWSTR pszGameName) : m_pszGameName(pszGameName), m_mainWindow(nullptr), m_renderer(nullptr)
+	{
 	}
 
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -41,17 +39,23 @@ namespace library
       TODO: Game::Initialize definition (remove the comment)
     --------------------------------------------------------------------*/
 	HRESULT Game::Initialize(_In_ HINSTANCE hinstance, _In_ INT nCmdShow) {
+
+		m_mainWindow = std::unique_ptr<MainWindow>(new MainWindow);
+		m_renderer = std::unique_ptr<Renderer>(new Renderer);
+
 		HRESULT hr = m_mainWindow->Initialize(hinstance, nCmdShow, GetGameName());
+		if (FAILED(hr)) 
+		{
+			return hr;
+		}
+		hr = m_renderer->Initialize(m_mainWindow->GetWindow());
 		if (FAILED(hr))
 		{
-			return 0;
+			return hr;
 		}
-		if (FAILED(m_renderer->Initialize(m_mainWindow->GetWindow())))
-		{
-			return 0;
-		}
-
+		return S_OK;
 	}
+
 
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
 	  Method:   Game::Run
@@ -65,11 +69,12 @@ namespace library
       TODO: Game::Run definition (remove the comment)
     --------------------------------------------------------------------*/
 	INT Game::Run() {
-		MSG msg = { 0 };
+		MSG msg = {};
+		PeekMessage(&msg, nullptr, 0U, 0U, PM_NOREMOVE);
 
 		while (WM_QUIT != msg.message)
 		{
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE) != 0)
 			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
@@ -79,9 +84,10 @@ namespace library
 				m_renderer->Render();
 			}
 		}
-		return static_cast<INT>(msg.wParam);
 
+		return static_cast<INT>(msg.wParam);
 	}
+
 
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
 	  Method:   Game::GetGameName
@@ -91,7 +97,10 @@ namespace library
 	  Returns:  PCWSTR
 				  Name of the game
 	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-	PCWSTR Game::GetGameName() const{
+    /*--------------------------------------------------------------------
+      TODO: Game::GetGameName definition (remove the comment)
+    --------------------------------------------------------------------*/
+	PCWSTR Game::GetGameName() const {
 		return this->m_pszGameName;
 	}
 

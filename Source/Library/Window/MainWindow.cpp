@@ -18,8 +18,10 @@ namespace library
       Returns:  HRESULT
                   Status code
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-
-    HRESULT MainWindow::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow, _In_ PCWSTR pszWindowName) 
+    /*--------------------------------------------------------------------
+      TODO: MainWindow::Initialize definition (remove the comment)
+    --------------------------------------------------------------------*/
+    HRESULT MainWindow::Initialize(_In_ HINSTANCE hInstance, _In_ INT nCmdShow, _In_ PCWSTR pszWindowName)
     {
         return initialize(hInstance, nCmdShow, pszWindowName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, nullptr, nullptr);
     }
@@ -32,8 +34,10 @@ namespace library
       Returns:  PCWSTR
                   Name of the window class
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-
-    PCWSTR MainWindow::GetWindowClassName() const 
+    /*--------------------------------------------------------------------
+      TODO: MainWindow::GetWindowClassName definition (remove the comment)
+    --------------------------------------------------------------------*/
+    PCWSTR MainWindow::GetWindowClassName() const
     {
         return L"Window Class";
     }
@@ -56,7 +60,7 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: MainWindow::HandleMessage definition (remove the comment)
     --------------------------------------------------------------------*/
-    LRESULT MainWindow::HandleMessage(_In_ UINT uMessage, _In_ WPARAM wParam, _In_ LPARAM lParam) 
+    LRESULT MainWindow::HandleMessage(_In_ UINT uMessage, _In_ WPARAM wParam, _In_ LPARAM lParam)
     {
         switch (uMessage)
         {
@@ -78,4 +82,5 @@ namespace library
         }
         return TRUE;
     }
+
 }

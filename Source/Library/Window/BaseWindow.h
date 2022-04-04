@@ -94,7 +94,9 @@ namespace library
         Returns:  LRESULT
                     Integer value that your program returns to Windows
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-
+    /*--------------------------------------------------------------------
+      TODO: BaseWindow<DerivedType>::WindowProc definition (remove the comment)
+    --------------------------------------------------------------------*/
     template <class DerivedType>
     LRESULT BaseWindow<DerivedType>::WindowProc(_In_ HWND hwnd, _In_ UINT uMessage, _In_ WPARAM wParam, _In_ LPARAM lParam)
     {
@@ -122,7 +124,6 @@ namespace library
         }
 
     }
-
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
         Method:   BaseWindow<DerivedType>::BaseWindow
 
@@ -130,9 +131,11 @@ namespace library
 
         Modifies: [m_hInstance, m_hWnd, m_pszWindowName].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
-
+    /*--------------------------------------------------------------------
+      TODO: BaseWindow<DerivedType>::BaseWindow definition (remove the comment)
+    --------------------------------------------------------------------*/
     template<class DerivedType>
-    BaseWindow<DerivedType>::BaseWindow() : m_hInstance(NULL), m_hWnd(NULL), m_pszWindowName(NULL){
+    BaseWindow<DerivedType>::BaseWindow() : m_hInstance(NULL), m_hWnd(NULL), m_pszWindowName(NULL) {
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -147,7 +150,7 @@ namespace library
       TODO: BaseWindow<DerivedType>::GetWindow definition (remove the comment)
     --------------------------------------------------------------------*/
     template<class DerivedType>
-    HWND BaseWindow<DerivedType>::GetWindow() const{
+    HWND BaseWindow<DerivedType>::GetWindow() const {
         return m_hWnd;
     }
 
@@ -200,11 +203,11 @@ namespace library
         _In_opt_ INT nHeight,
         _In_opt_ HWND hWndParent,
         _In_opt_ HMENU hMenu
-        ) {
+    ) {
         WNDCLASS wc = { 0 };
 
         wc.lpfnWndProc = DerivedType::WindowProc;
-        wc.hInstance = GetModuleHandle(NULL);
+        wc.hInstance = hInstance;
         wc.lpszClassName = GetWindowClassName();
 
         RegisterClass(&wc);
