@@ -18,7 +18,7 @@ namespace library
     Camera::Camera(_In_ const XMVECTOR& position)
         : m_yaw(0.0f), m_pitch(0.0f),
         m_moveLeftRight(0.0f), m_moveBackForward(0.0f), m_moveUpDown(0.0f),
-        m_travelSpeed(0.1f), m_rotationSpeed(0.1f),
+        m_travelSpeed(1.0f), m_rotationSpeed(1.0f),
         m_padding(),
         m_cameraForward(DEFAULT_FORWARD), m_cameraRight(DEFAULT_RIGHT), m_cameraUp(DEFAULT_UP),
         m_eye(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f)), 

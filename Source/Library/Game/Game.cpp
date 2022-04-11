@@ -87,7 +87,7 @@ namespace library
                 QueryPerformanceCounter(&EndingTime);
                 ElapsedMicroseconds.QuadPart = (FLOAT)(EndingTime.QuadPart - StartingTime.QuadPart);
 
-                ElapsedMicroseconds.QuadPart *= 3000;
+                ElapsedMicroseconds.QuadPart *= 1000000;
                 ElapsedMicroseconds.QuadPart /= (FLOAT)Frequency.QuadPart;
 
                 QueryPerformanceFrequency(&Frequency);
@@ -96,11 +96,11 @@ namespace library
                 m_renderer->HandleInput(
                     m_mainWindow->GetDirections(),
                     m_mainWindow->GetMouseRelativeMovement(),
-                    (float)ElapsedMicroseconds.QuadPart
+                    (float)ElapsedMicroseconds.QuadPart / 1000000.0f
                 );
 
                 // update the renderer
-                m_renderer->Update((float)ElapsedMicroseconds.QuadPart / 1000);
+                m_renderer->Update((float)ElapsedMicroseconds.QuadPart / 1000000.0f);
 
 
                 m_renderer->Render();
