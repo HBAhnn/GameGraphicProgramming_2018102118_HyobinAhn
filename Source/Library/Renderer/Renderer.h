@@ -13,6 +13,7 @@
 
 #include "Common.h"
 
+#include "Camera/Camera.h"
 #include "Renderer/DataTypes.h"
 #include "Renderer/Renderable.h"
 #include "Shader/PixelShader.h"
@@ -21,7 +22,7 @@
 
 namespace library
 {
-    /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
+    /*
       Class:    Renderer
 
       Summary:  Renderer initializes Direct3D, and renders renderable
@@ -68,6 +69,7 @@ namespace library
         void Update(_In_ FLOAT deltaTime);
         void Render();
 
+        void HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime);
         HRESULT SetVertexShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszVertexShaderName);
         HRESULT SetPixelShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszPixelShaderName);
 
@@ -85,6 +87,7 @@ namespace library
         ComPtr<ID3D11RenderTargetView> m_renderTargetView;
         ComPtr<ID3D11Texture2D> m_depthStencil;
         ComPtr<ID3D11DepthStencilView> m_depthStencilView;
+        Camera m_camera;
         XMMATRIX m_view;
         XMMATRIX m_projection;
 

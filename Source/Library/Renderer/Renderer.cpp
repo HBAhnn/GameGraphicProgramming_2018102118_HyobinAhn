@@ -27,6 +27,7 @@ namespace library
         m_renderTargetView(nullptr),
         m_depthStencil(nullptr),
         m_depthStencilView(nullptr),
+        m_camera(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f)),
         m_view(),
         m_projection(),
         m_renderables(),
@@ -358,6 +359,34 @@ namespace library
         }
     }
 
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+    Method:   Renderer::HandleInput
+    Summary:  Add the pixel shader into the renderer and initialize it
+    Args:     const DirectionsInput& directions
+                  Data structure containing keyboard input data
+                const MouseRelativeMovement& mouseRelativeMovement
+                Data structure containing mouse relative input data
+    Modifies: [m_camera].
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+    TODO: Renderer::HandleInput definition (remove the comment)
+    --------------------------------------------------------------------*/
+    void Renderer::HandleInput(
+        _In_ const DirectionsInput& directions,
+        _In_ const MouseRelativeMovement& mouseRelativeMovement,
+        _In_ FLOAT deltaTime
+    )
+    {
+        m_camera.HandleInput(
+            directions,
+            mouseRelativeMovement,
+            deltaTime
+        );
+    }
+
+
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Renderer::Update
 
@@ -374,6 +403,7 @@ namespace library
         {
             renderable.second->Update(deltaTime);
         }
+        m_camera.Update(deltaTime);
     }
 
 
@@ -409,7 +439,7 @@ namespace library
             //Update constant buffer
             ConstantBuffer cb = {
                 .World = XMMatrixTranspose(renderable->GetWorldMatrix()),
-                .View = XMMatrixTranspose(m_view),
+                .View = XMMatrixTranspose(m_camera.GetView()),
                 .Projection = XMMatrixTranspose(m_projection)
             };
             m_immediateContext->UpdateSubresource(renderable->GetConstantBuffer().Get(), 0, NULL, &cb, 0, 0);

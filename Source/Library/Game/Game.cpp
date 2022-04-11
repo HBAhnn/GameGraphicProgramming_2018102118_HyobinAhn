@@ -90,8 +90,15 @@ namespace library
                 time = (FLOAT)(EndingTime.QuadPart - StartingTime.QuadPart);
                 time /= (FLOAT)Frequency.QuadPart;
 
+                m_renderer->HandleInput(
+                    m_mainWindow->GetDirections(),
+                    m_mainWindow->GetMouseRelativeMovement(),
+                    time
+                );
+
                 // update the renderer
                 m_renderer->Update(time);
+
 
                 m_renderer->Render();
             }
