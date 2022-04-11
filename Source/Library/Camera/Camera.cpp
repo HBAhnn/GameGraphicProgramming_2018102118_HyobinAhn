@@ -112,7 +112,6 @@ namespace library
     --------------------------------------------------------------------*/
     void Camera::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
     {
-        deltaTime /= 300.0f;
         if (directions.bRight == 1)
         {
             m_moveLeftRight = deltaTime * m_travelSpeed;

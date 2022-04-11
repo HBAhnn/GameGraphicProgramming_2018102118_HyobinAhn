@@ -78,6 +78,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     game->GetRenderer()->SetPixelShaderOfRenderable(L"CubeOne", L"MainShader");
 
     //Second Cube
+    /*
     std::shared_ptr<CubeTwo> SecondCube = std::make_shared<CubeTwo>();
     game->GetRenderer()->AddRenderable(L"CubeTwo", SecondCube);
     game->GetRenderer()->SetVertexShaderOfRenderable(L"CubeTwo", L"MainShader");
@@ -88,6 +89,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     game->GetRenderer()->AddRenderable(L"CubeThree", ThirdCube);
     game->GetRenderer()->SetVertexShaderOfRenderable(L"CubeThree", L"MainShader");
     game->GetRenderer()->SetPixelShaderOfRenderable(L"CubeThree", L"MainShader");
+    */
 
     if (FAILED(game->Initialize(hInstance, nCmdShow)))
     {

@@ -71,8 +71,6 @@ namespace library
         LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
         LARGE_INTEGER Frequency;
 
-        float time;
-
         QueryPerformanceFrequency(&Frequency);
         QueryPerformanceCounter(&StartingTime);
 
@@ -87,17 +85,22 @@ namespace library
             {
                 // update the elapsed time
                 QueryPerformanceCounter(&EndingTime);
-                time = (FLOAT)(EndingTime.QuadPart - StartingTime.QuadPart);
-                time /= (FLOAT)Frequency.QuadPart;
+                ElapsedMicroseconds.QuadPart = (FLOAT)(EndingTime.QuadPart - StartingTime.QuadPart);
+
+                ElapsedMicroseconds.QuadPart *= 3000;
+                ElapsedMicroseconds.QuadPart /= (FLOAT)Frequency.QuadPart;
+
+                QueryPerformanceFrequency(&Frequency);
+                QueryPerformanceCounter(&StartingTime);
 
                 m_renderer->HandleInput(
                     m_mainWindow->GetDirections(),
                     m_mainWindow->GetMouseRelativeMovement(),
-                    time
+                    (float)ElapsedMicroseconds.QuadPart
                 );
 
                 // update the renderer
-                m_renderer->Update(time);
+                m_renderer->Update((float)ElapsedMicroseconds.QuadPart / 1000);
 
 
                 m_renderer->Render();
