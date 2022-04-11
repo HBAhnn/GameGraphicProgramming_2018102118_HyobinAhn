@@ -33,6 +33,23 @@ namespace library
         m_mouseRelativeMovement.X = 0;
         m_mouseRelativeMovement.Y = 0;
 
+        static bool RI_initialize = false;
+        if (RI_initialize == false)
+        {
+            RAWINPUTDEVICE rid;
+
+            rid.usUsagePage = 0x01;
+            rid.usUsage = 0x02;
+            rid.dwFlags = 0;
+            rid.hwndTarget = NULL;
+
+            if (RegisterRawInputDevices(&rid, 1, sizeof(rid)) == false)
+            {
+                return E_FAIL;
+            }
+
+        }
+
         return initialize(hInstance, nCmdShow, pszWindowName, WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, nullptr, nullptr);
     }
 
@@ -73,11 +90,37 @@ namespace library
     --------------------------------------------------------------------*/
     LRESULT MainWindow::HandleMessage(_In_ UINT uMessage, _In_ WPARAM wParam, _In_ LPARAM lParam)
     {
+        
         switch (uMessage)
         {
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
+
+        case WM_INPUT:
+        {
+            UINT dataSize;
+
+            GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
+
+            if (dataSize > 0)
+            {
+                std::unique_ptr<BYTE[]> rawdata = std::make_unique<BYTE[]>(dataSize);
+
+                if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, rawdata.get(), &dataSize, sizeof(RAWINPUTHEADER)) == dataSize)
+                {
+                    RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawdata.get());
+                    if (raw->header.dwType == RIM_TYPEMOUSE)
+                    {
+                        m_mouseRelativeMovement.X = raw->data.mouse.lLastX;
+                        m_mouseRelativeMovement.Y = raw->data.mouse.lLastY;
+                    }
+                }
+            }
+            
+            return DefWindowProc(this->GetWindow(), uMessage, wParam, lParam);
+        }
+        return 0;
 
         case WM_KEYUP:
         {
@@ -164,4 +207,9 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: MainWindow::ResetMouseMovement definition (remove the comment)
     --------------------------------------------------------------------*/
+    void MainWindow::ResetMouseMovement()
+    {
+        m_mouseRelativeMovement.X = 0;
+        m_mouseRelativeMovement.Y = 0;
+    }
 }

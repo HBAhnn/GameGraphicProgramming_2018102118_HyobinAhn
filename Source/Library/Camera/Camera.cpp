@@ -112,14 +112,10 @@ namespace library
     --------------------------------------------------------------------*/
     void Camera::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
     {
-        if (directions.bRight == 1)
-        {
-            m_moveLeftRight = deltaTime * m_travelSpeed;
+        m_yaw += + mouseRelativeMovement.X * m_rotationSpeed * deltaTime;
 
-            /*WCHAR szDebugMessage[64];
-            swprintf_s(szDebugMessage, L"deltaTime: %u\n", deltaTime);
-            OutputDebugString(szDebugMessage);*/
-        }
+        if (directions.bRight == 1)
+            m_moveLeftRight = deltaTime * m_travelSpeed;
         if (directions.bLeft == 1)
             m_moveLeftRight = deltaTime * m_travelSpeed * -1;
         if (directions.bUp == 1)
@@ -150,10 +146,12 @@ namespace library
     --------------------------------------------------------------------*/
     void Camera::Update(_In_ FLOAT deltaTime)
     {
-        m_rotation = XMMatrixRotationRollPitchYaw(m_yaw, m_pitch, 0);
+        //rotation matrix
+        m_rotation = XMMatrixRotationRollPitchYaw(m_pitch, m_yaw, 0);
         m_at = XMVector3TransformCoord(DEFAULT_FORWARD, m_rotation);
         m_at = XMVector3Normalize(m_at);
 
+        //new R, U, F vector
         XMMATRIX RotateYTempMatrix;
         RotateYTempMatrix = XMMatrixRotationY(m_yaw);
 
@@ -161,16 +159,19 @@ namespace library
         m_cameraUp = XMVector3TransformCoord(m_cameraUp, RotateYTempMatrix);
         m_cameraForward = XMVector3TransformCoord(DEFAULT_FORWARD, RotateYTempMatrix);
 
+        //New eye, at
         m_eye += m_moveLeftRight * m_cameraRight;
         m_eye += m_moveBackForward * m_cameraForward;
         m_eye += m_moveUpDown * m_cameraUp;
 
+        m_at = m_eye + m_at;
+
+        //reset movement
         m_moveLeftRight = 0.0f;
         m_moveBackForward = 0.0f;
         m_moveUpDown = 0.0f;
 
-        m_at = m_eye + m_at;
-
+        //determine the view matrix
         m_view = XMMatrixLookAtLH(m_eye, m_at, m_up);
     }
 }

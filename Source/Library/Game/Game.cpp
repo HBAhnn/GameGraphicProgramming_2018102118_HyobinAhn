@@ -99,6 +99,8 @@ namespace library
                     (float)ElapsedMicroseconds.QuadPart / 1000000.0f
                 );
 
+                m_mainWindow->ResetMouseMovement();
+
                 // update the renderer
                 m_renderer->Update((float)ElapsedMicroseconds.QuadPart / 1000000.0f);
 
