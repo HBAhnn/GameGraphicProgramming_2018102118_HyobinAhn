@@ -2,106 +2,147 @@
 
 namespace library
 {
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   Game::Game
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Game::Game
 
-	  Summary:  Constructor
+      Summary:  Constructor
 
-	  Args:     PCWSTR pszGameName
-				  Name of the game
+      Args:     PCWSTR pszGameName
+                  Name of the game
 
-	  Modifies: [m_pszGameName, m_mainWindow, m_renderer].
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+      Modifies: [m_pszGameName, m_mainWindow, m_renderer].
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     /*--------------------------------------------------------------------
       TODO: Game::Game definition (remove the comment)
     --------------------------------------------------------------------*/
-	Game::Game(_In_ PCWSTR pszGameName) : m_pszGameName(pszGameName), m_mainWindow(nullptr), m_renderer(nullptr)
-	{
-	}
+    Game::Game(_In_ PCWSTR pszGameName) : m_pszGameName(pszGameName), m_mainWindow(std::make_unique<MainWindow>()), m_renderer(std::make_unique<Renderer>())
+    {
+    }
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   Game::Initialize
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Game::Initialize
 
-	  Summary:  Initializes the components of the game
+      Summary:  Initializes the components of the game
 
-	  Args:     HINSTANCE hInstance
-	  			  Handle to the instance
-				INT nCmdShow
-				  Is a flag that says whether the main application window
-				  will be minimized, maximized, or shown normally
+      Args:     HINSTANCE hInstance
+                  Handle to the instance
+                INT nCmdShow
+                  Is a flag that says whether the main application window
+                  will be minimized, maximized, or shown normally
 
-	  Modifies: [m_mainWindow, m_renderer].
+      Modifies: [m_mainWindow, m_renderer].
 
-	  Returns:  HRESULT
-	  			Status code
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+      Returns:  HRESULT
+                  Status code
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     /*--------------------------------------------------------------------
-      TODO: Game::Initialize definition (remove the comment)
+      TODO: Game::Initializes definition (remove the comment)
     --------------------------------------------------------------------*/
-	HRESULT Game::Initialize(_In_ HINSTANCE hinstance, _In_ INT nCmdShow) {
+    HRESULT Game::Initialize(_In_ HINSTANCE hinstance, _In_ INT nCmdShow) {
 
-		m_mainWindow = std::unique_ptr<MainWindow>(new MainWindow);
-		m_renderer = std::unique_ptr<Renderer>(new Renderer);
+        HRESULT hr = m_mainWindow->Initialize(hinstance, nCmdShow, GetGameName());
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+        hr = m_renderer->Initialize(m_mainWindow->GetWindow());
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+        return S_OK;
+    }
 
-		HRESULT hr = m_mainWindow->Initialize(hinstance, nCmdShow, GetGameName());
-		if (FAILED(hr)) 
-		{
-			return hr;
-		}
-		hr = m_renderer->Initialize(m_mainWindow->GetWindow());
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-		return S_OK;
-	}
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Game::Run
 
+      Summary:  Runs the game loop
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   Game::Run
-
-	  Summary:  Runs the game loop
-
-	  Returns:  INT
-				  Status code to return to the operating system
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+      Returns:  INT
+                  Status code to return to the operating system
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     /*--------------------------------------------------------------------
       TODO: Game::Run definition (remove the comment)
     --------------------------------------------------------------------*/
-	INT Game::Run() {
-		MSG msg = {};
-		PeekMessage(&msg, nullptr, 0U, 0U, PM_NOREMOVE);
+    INT Game::Run() {
+        MSG msg = {};
+        PeekMessage(&msg, nullptr, 0U, 0U, PM_NOREMOVE);
 
-		while (WM_QUIT != msg.message)
-		{
-			if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE) != 0)
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			else
-			{
-				m_renderer->Render();
-			}
-		}
+        LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+        LARGE_INTEGER Frequency;
 
-		return static_cast<INT>(msg.wParam);
-	}
+        float time;
+
+        QueryPerformanceFrequency(&Frequency);
+        QueryPerformanceCounter(&StartingTime);
+
+        while (WM_QUIT != msg.message)
+        {
+            if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE) != 0)
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+            else
+            {
+                // update the elapsed time
+                QueryPerformanceCounter(&EndingTime);
+                time = (FLOAT)(EndingTime.QuadPart - StartingTime.QuadPart);
+                time /= (FLOAT)Frequency.QuadPart;
+
+                // update the renderer
+                m_renderer->Update(time);
+
+                m_renderer->Render();
+            }
+        }
+
+        return static_cast<INT>(msg.wParam);
+    }
 
 
-	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
-	  Method:   Game::GetGameName
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Game::GetGameName
 
-	  Summary:  Returns the name of the game
+      Summary:  Returns the name of the game
 
-	  Returns:  PCWSTR
-				  Name of the game
-	M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+      Returns:  PCWSTR
+                  Name of the game
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     /*--------------------------------------------------------------------
       TODO: Game::GetGameName definition (remove the comment)
     --------------------------------------------------------------------*/
-	PCWSTR Game::GetGameName() const {
-		return this->m_pszGameName;
-	}
+    PCWSTR Game::GetGameName() const {
+        return this->m_pszGameName;
+    }
 
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Game::GetWindow
+
+      Summary:  Returns the main window
+
+      Returns:  std::unique_ptr<MainWindow>&
+                  The main window
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Game::GetWindow definition (remove the comment)
+    --------------------------------------------------------------------*/
+    std::unique_ptr<MainWindow>& Game::GetWindow() {
+        return m_mainWindow;
+    }
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Game::GetRenderer
+
+      Summary:  Returns the renderer
+
+      Returns:  std::unique_ptr<Renderer>&
+                  The renderer
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Game::GetRenderer definition (remove the comment)
+    --------------------------------------------------------------------*/
+    std::unique_ptr<Renderer>& Game::GetRenderer() {
+        return m_renderer;
+    }
 }

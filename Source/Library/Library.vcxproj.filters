@@ -16,49 +16,84 @@
     <Filter Include="소스 파일\Game">
       <UniqueIdentifier>{c05ac13b-3a8b-4fbf-b555-e2f8679d7627}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Shader">
+      <UniqueIdentifier>{cdd23b58-254d-48da-ae47-4317698fe0fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\library">
+      <UniqueIdentifier>{c4ce3a1d-c50d-42c7-a77d-7f16dd81c01e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\library\renderer">
+      <UniqueIdentifier>{8aff3bbf-4c30-4a25-a443-fd5684dd90b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\library\window">
+      <UniqueIdentifier>{47675061-8fc3-4df3-8ac5-8bf975c0b2cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\library\shader">
+      <UniqueIdentifier>{376d48e3-5c3b-4086-b54c-f740821b6f00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Game">
+      <UniqueIdentifier>{b7f31423-5d7d-46b0-bd32-a165162bdedb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\renderer">
+      <UniqueIdentifier>{9de1357a-5b0e-4af2-9de1-1b1f577f92b8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Game\Game.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Window\BaseWindow.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="Shader\PixelShader.h">
+      <Filter>헤더 파일\library\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader\Shader.h">
+      <Filter>헤더 파일\library\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader\VertexShader.h">
+      <Filter>헤더 파일\library\shader</Filter>
     </ClInclude>
     <ClInclude Include="Window\MainWindow.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\library\window</Filter>
+    </ClInclude>
+    <ClInclude Include="Window\BaseWindow.h">
+      <Filter>헤더 파일\library\window</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\Renderer.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\library\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DataTypes.h">
+      <Filter>헤더 파일\library\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderable.h">
+      <Filter>헤더 파일\library\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Game.h">
+      <Filter>헤더 파일\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game\Game.cpp">
       <Filter>소스 파일\Game</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Renderer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Window\MainWindow.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\Lab03_PS.hlsl">
-      <Filter>헤더 파일</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\Lab03_VS.hlsl">
-      <Filter>헤더 파일</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\Lab03.fxh">
-      <Filter>헤더 파일</Filter>
-    </None>
+    <ClCompile Include="Shader\VertexShader.cpp">
+      <Filter>소스 파일\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader\Shader.cpp">
+      <Filter>소스 파일\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader\PixelShader.cpp">
+      <Filter>소스 파일\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderable.cpp">
+      <Filter>소스 파일\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>소스 파일\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

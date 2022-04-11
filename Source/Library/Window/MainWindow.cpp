@@ -42,6 +42,7 @@ namespace library
         return L"Window Class";
     }
 
+
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   MainWindow::HandleMessage
 
@@ -82,5 +83,4 @@ namespace library
         }
         return TRUE;
     }
-
 }
