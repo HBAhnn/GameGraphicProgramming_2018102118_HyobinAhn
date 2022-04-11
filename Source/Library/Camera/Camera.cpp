@@ -113,6 +113,7 @@ namespace library
     void Camera::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
     {
         m_yaw += + mouseRelativeMovement.X * m_rotationSpeed * deltaTime;
+        m_pitch += +mouseRelativeMovement.Y * m_rotationSpeed * deltaTime;
 
         if (directions.bRight == 1)
             m_moveLeftRight = deltaTime * m_travelSpeed;
