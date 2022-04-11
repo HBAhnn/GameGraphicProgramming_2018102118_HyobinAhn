@@ -264,8 +264,6 @@ namespace library
             if (FAILED(hr)) 
                 return hr;
         }
-
-        ClipCursor(&rc);
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M

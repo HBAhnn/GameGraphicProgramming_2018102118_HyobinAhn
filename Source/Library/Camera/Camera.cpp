@@ -112,8 +112,19 @@ namespace library
     --------------------------------------------------------------------*/
     void Camera::HandleInput(_In_ const DirectionsInput& directions, _In_ const MouseRelativeMovement& mouseRelativeMovement, _In_ FLOAT deltaTime)
     {
-        m_yaw += + mouseRelativeMovement.X * m_rotationSpeed * deltaTime;
-        m_pitch += +mouseRelativeMovement.Y * m_rotationSpeed * deltaTime;
+        m_yaw += mouseRelativeMovement.X * m_rotationSpeed * deltaTime;
+        if (m_pitch + mouseRelativeMovement.Y * m_rotationSpeed * deltaTime < XM_PIDIV2
+            && m_pitch + mouseRelativeMovement.Y * m_rotationSpeed * deltaTime > -XM_PIDIV2)
+        {
+            m_pitch += mouseRelativeMovement.Y * m_rotationSpeed * deltaTime;
+            /*
+            WCHAR szDebugMessage[64];
+            swprintf_s(szDebugMessage, L"pi: %f\n", XM_PIDIV2);
+            OutputDebugString(szDebugMessage);
+            swprintf_s(szDebugMessage, L"pitch: %f\n", m_pitch);
+            OutputDebugString(szDebugMessage);
+            */
+        }
 
         if (directions.bRight == 1)
             m_moveLeftRight = deltaTime * m_travelSpeed;

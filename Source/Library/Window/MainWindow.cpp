@@ -99,6 +99,26 @@ namespace library
 
         case WM_INPUT:
         {
+            RECT rc;
+            POINT p1, p2;
+
+            GetClientRect(m_hWnd, &rc);
+
+            p1.x = rc.left;
+            p1.y = rc.top;
+            p2.x = rc.right;
+            p2.y = rc.bottom;
+
+            ClientToScreen(m_hWnd, &p1);
+            ClientToScreen(m_hWnd, &p2);
+
+            rc.left = p1.x;
+            rc.top = p1.y;
+            rc.right = p2.x;
+            rc.bottom = p2.y;
+
+            ClipCursor(&rc);
+
             UINT dataSize;
 
             GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
