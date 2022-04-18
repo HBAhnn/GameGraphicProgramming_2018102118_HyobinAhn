@@ -8,9 +8,11 @@ namespace library
       Summary:  Constructor
 
       Modifies: [m_driverType, m_featureLevel, m_d3dDevice, m_d3dDevice1,
-                  m_immediateContext, m_immediateContext1, m_swapChain,
-                  m_swapChain1, m_renderTargetView, m_vertexShader,
-                  m_pixelShader, m_vertexLayout, m_vertexBuffer].
+                 m_immediateContext, m_immediateContext1, m_swapChain,
+                 m_swapChain1, m_renderTargetView, m_depthStencil,
+                 m_depthStencilView, m_cbChangeOnResize, m_camera,
+                 m_projection, m_renderables, m_vertexShaders,
+                 m_pixelShaders].
     M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
     /*--------------------------------------------------------------------
       TODO: Renderer::Renderer definition (remove the comment)
@@ -27,8 +29,8 @@ namespace library
         m_renderTargetView(nullptr),
         m_depthStencil(nullptr),
         m_depthStencilView(nullptr),
+        m_cbChangeOnResize(nullptr),
         m_camera(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f)),
-        m_view(),
         m_projection(),
         m_renderables(),
         m_vertexShaders(),
@@ -231,15 +233,28 @@ namespace library
         vp.TopLeftY = 0;
         m_immediateContext->RSSetViewports(1, &vp);
 
-        //Create a view matrix
-        XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
-        XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-        XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-        m_view = XMMatrixLookAtLH(Eye, At, Up);
+        //Camera initialize
+        m_camera.Initialize(m_d3dDevice.Get());
 
         //Create a projection matrix
         m_projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, (FLOAT)width / (FLOAT)height, 0.01f, 100.0f);    
 
+        //Create the constant buffer
+        D3D11_BUFFER_DESC bd = {
+            .ByteWidth = sizeof(CBChangeOnResize),
+            .Usage = D3D11_USAGE_DEFAULT,
+            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            .CPUAccessFlags = 0
+        };
+        hr = m_d3dDevice->CreateBuffer(&bd, nullptr, m_cbChangeOnResize.GetAddressOf());
+        if (FAILED(hr))
+            return hr;
+
+        //Set CBChangeOnResize constant buffer
+
+        CBChangeOnResize cbChangesOnResize;
+        cbChangesOnResize.Projection = XMMatrixTranspose(m_projection);
+        m_immediateContext->UpdateSubresource(m_cbChangeOnResize.Get(), 0, nullptr, &cbChangesOnResize, 0, 0);
 
         //Initialize renderables
         for (auto& renderables : m_renderables)
@@ -264,6 +279,8 @@ namespace library
             if (FAILED(hr)) 
                 return hr;
         }
+        // Set primitive topology
+        m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -437,10 +454,8 @@ namespace library
             m_immediateContext->IASetInputLayout(renderable->GetVertexLayout().Get());
 
             //Update constant buffer
-            ConstantBuffer cb = {
-                .World = XMMatrixTranspose(renderable->GetWorldMatrix()),
-                .View = XMMatrixTranspose(m_camera.GetView()),
-                .Projection = XMMatrixTranspose(m_projection)
+            CBChangesEveryFrame cb = {
+                .World = XMMatrixTranspose(renderable->GetWorldMatrix())
             };
             m_immediateContext->UpdateSubresource(renderable->GetConstantBuffer().Get(), 0, NULL, &cb, 0, 0);
 
@@ -448,6 +463,13 @@ namespace library
             m_immediateContext->VSSetShader(renderable->GetVertexShader().Get(), nullptr, 0);
             m_immediateContext->VSSetConstantBuffers(0, 1, renderable->GetConstantBuffer().GetAddressOf());
             m_immediateContext->PSSetShader(renderable->GetPixelShader().Get(), nullptr, 0);
+
+            //Set texture resource view of the renderable into the pixel shader
+            m_immediateContext->PSSetShaderResources(0, 1, renderable->GetTextureResourceView().GetAddressOf());
+
+            //Set sampler state of the renderable into the pixel shader
+            m_immediateContext->PSSetSamplers(0, 1, renderable->GetSamplerState().GetAddressOf());
+
             m_immediateContext->DrawIndexed(renderable->GetNumIndices(), 0, 0);
         }
         m_swapChain->Present(0, 0);

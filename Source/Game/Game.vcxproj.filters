@@ -19,6 +19,9 @@
     <Filter Include="헤더 파일\AdditionalCube">
       <UniqueIdentifier>{2a28d1ca-19ec-41ed-9cce-bf2897769b47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="헤더 파일\Shader">
+      <UniqueIdentifier>{393335f6-2564-4a8a-ac5d-87900127892c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -30,10 +33,7 @@
     <ClCompile Include="Cube\CubeOne.cpp">
       <Filter>소스 파일\AdditionalCube</Filter>
     </ClCompile>
-    <ClCompile Include="Cube\CubeThree.cpp">
-      <Filter>소스 파일\AdditionalCube</Filter>
-    </ClCompile>
-    <ClCompile Include="CubeTwo.cpp">
+    <ClCompile Include="Cube\Cube.cpp">
       <Filter>소스 파일\AdditionalCube</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,27 +41,27 @@
     <ClInclude Include="Cube\BaseCube.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Cube\CubeThree.h">
-      <Filter>헤더 파일\AdditionalCube</Filter>
-    </ClInclude>
     <ClInclude Include="Cube\CubeOne.h">
       <Filter>헤더 파일\AdditionalCube</Filter>
     </ClInclude>
-    <ClInclude Include="CubeTwo.h">
+    <ClInclude Include="Cube\Cube.h">
       <Filter>헤더 파일\AdditionalCube</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Shaders2.fxh">
+      <Filter>헤더 파일\Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\PS.hlsl">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\Shader</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\VS.hlsl">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\Shader</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Shaders.fxh">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

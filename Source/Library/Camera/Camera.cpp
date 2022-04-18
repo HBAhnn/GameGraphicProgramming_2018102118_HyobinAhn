@@ -21,7 +21,7 @@ namespace library
         m_travelSpeed(1.0f), m_rotationSpeed(1.0f),
         m_padding(),
         m_cameraForward(DEFAULT_FORWARD), m_cameraRight(DEFAULT_RIGHT), m_cameraUp(DEFAULT_UP),
-        m_eye(XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f)), 
+        m_eye(position),
         m_at(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)),
         m_up(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)),
         m_rotation(), m_view()
@@ -93,6 +93,19 @@ namespace library
     }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Camera::GetConstantBuffer
+      Summary:  Returns the constant buffer
+      Returns:  ComPtr<ID3D11Buffer>&
+                  The constant buffer
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Camera::GetConstantBuffer definition (remove the comment)
+    --------------------------------------------------------------------*/
+    ComPtr<ID3D11Buffer>& Camera::GetConstantBuffer() {
+        return m_cbChangeOnCameraMovement;
+    }
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::HandleInput
 
       Summary:  Sets the camera state according to the given input
@@ -140,6 +153,37 @@ namespace library
             m_moveBackForward = deltaTime * m_travelSpeed;
 
     }
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Camera::Initialize
+      Summary:  Initialize the view matrix constant buffers
+      Args:     ID3D11Device* pDevice
+                  Pointer to a Direct3D 11 device
+      Modifies: [m_cbChangeOnCameraMovement].
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Camera::Initialize definition (remove the comment)
+    --------------------------------------------------------------------*/
+    HRESULT Camera::Initialize(ID3D11Device* pDevice) {
+
+        D3D11_BUFFER_DESC bd = {
+            .ByteWidth = sizeof(CBChangeOnCameraMovement),
+            .Usage = D3D11_USAGE_DEFAULT,
+            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            .CPUAccessFlags = 0
+        };
+
+        HRESULT hr;
+
+        hr = pDevice->CreateBuffer(&bd, nullptr, m_cbChangeOnCameraMovement.GetAddressOf());
+
+        if (FAILED(hr))
+            return hr;
+
+        return S_OK;
+    }
+
+
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Camera::Update
