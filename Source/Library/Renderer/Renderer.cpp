@@ -439,6 +439,13 @@ namespace library
         //Clear the depth buffer to 1.0 (maximum depth)
         m_immediateContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+        // Create camera constant buffer and update
+        CBChangeOnCameraMovement cb = {
+               .View = XMMatrixTranspose(m_camera.GetView())
+        };
+
+        m_immediateContext->UpdateSubresource(m_camera.GetConstantBuffer().Get(), 0, nullptr, &cb, 0, 0);
+
         for(auto& each : m_renderables)
         {
             std::shared_ptr<Renderable> renderable = each.second;
@@ -453,7 +460,7 @@ namespace library
             //Set input layer
             m_immediateContext->IASetInputLayout(renderable->GetVertexLayout().Get());
 
-            //Update constant buffer
+            //Create and update constant buffer
             CBChangesEveryFrame cb = {
                 .World = XMMatrixTranspose(renderable->GetWorldMatrix())
             };
@@ -461,8 +468,15 @@ namespace library
 
             //Rendering triangles
             m_immediateContext->VSSetShader(renderable->GetVertexShader().Get(), nullptr, 0);
-            m_immediateContext->VSSetConstantBuffers(0, 1, renderable->GetConstantBuffer().GetAddressOf());
+
+            m_immediateContext->VSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
+            m_immediateContext->VSSetConstantBuffers(1, 1, m_cbChangeOnResize.GetAddressOf());
+            m_immediateContext->VSSetConstantBuffers(2, 1, renderable->GetConstantBuffer().GetAddressOf());
+
             m_immediateContext->PSSetShader(renderable->GetPixelShader().Get(), nullptr, 0);
+
+
+            m_immediateContext->PSSetConstantBuffers(2, 1, renderable->GetConstantBuffer().GetAddressOf());
 
             //Set texture resource view of the renderable into the pixel shader
             m_immediateContext->PSSetShaderResources(0, 1, renderable->GetTextureResourceView().GetAddressOf());

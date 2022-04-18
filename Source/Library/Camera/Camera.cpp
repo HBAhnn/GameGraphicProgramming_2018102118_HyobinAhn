@@ -21,7 +21,7 @@ namespace library
         m_travelSpeed(1.0f), m_rotationSpeed(1.0f),
         m_padding(),
         m_cameraForward(DEFAULT_FORWARD), m_cameraRight(DEFAULT_RIGHT), m_cameraUp(DEFAULT_UP),
-        m_eye(position),
+        m_eye(XMVectorSet(0.0f, 0.0f, -5.0f, 0.0f)),
         m_at(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)),
         m_up(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)),
         m_rotation(), m_view()
