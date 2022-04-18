@@ -14,6 +14,7 @@
 #include <source_location>
 
 #include "Cube/Cube.h"
+#include "Cube/CubeOne.h"
 #include "Game/Game.h"
 
 /*F+F+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,6 +70,23 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     }
 
     if (FAILED(game->GetRenderer()->SetPixelShaderOfRenderable(L"Cube", L"MainShader")))
+    {
+        return 0;
+    }
+
+    //Cube Make2
+    std::shared_ptr<CubeOne> cubeOne = std::make_shared<CubeOne>("bono.dds");
+    if (FAILED(game->GetRenderer()->AddRenderable(L"CubeOne", cubeOne)))
+    {
+        return 0;
+    }
+
+    if (FAILED(game->GetRenderer()->SetVertexShaderOfRenderable(L"CubeOne", L"MainShader")))
+    {
+        return 0;
+    }
+
+    if (FAILED(game->GetRenderer()->SetPixelShaderOfRenderable(L"CubeOne", L"MainShader")))
     {
         return 0;
     }
