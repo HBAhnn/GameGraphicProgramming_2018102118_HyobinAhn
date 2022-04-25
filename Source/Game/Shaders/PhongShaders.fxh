@@ -172,15 +172,24 @@ PS_LIGHT_CUBE_INPUT VSLightCube(VS_PHONG_INPUT input)
 
 float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
 {
+    float3 diffuse = float3(0, 0, 0);    
+	float3 ambient = float3(0.1f,0.1f,0.1f);
 
-    float3 diffuse;    
-	for (uint i = 0; i < 2; ++i)    
+	float3 viewdirection = normalize(input.WorldPos - CameraPosition.xyz);
+	float3 specular = float3(0, 0, 0);
+
+	for (uint i = 0; i < NUM_LIGHTS; ++i)    
 	{        
 		float3 lightDirection = normalize(input.WorldPos - LightPositions[i].xyz);
 
-		diffuse += dot(input.Norm, -lightDirection) * LightColors[i].xyz;
+		float3 reflectDirection = reflect(lightDirection, input.Norm);
+
+		diffuse += saturate(dot(input.Norm, -lightDirection)) * LightColors[i].xyz;
+
+		specular += saturate(pow(dot(-viewdirection, reflectDirection), 15.0f)) * LightColors[i];
+
 	}    
-	return float4(saturate(diffuse), 1);
+	return float4(ambient + diffuse + specular, 1) * txDiffuse.Sample(samLinear, input.Tex);;
 }
 
 

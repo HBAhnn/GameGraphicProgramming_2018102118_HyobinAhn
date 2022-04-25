@@ -26,7 +26,7 @@ namespace library
         m_pixelShader(nullptr),
         m_textureFilePath(textureFilePath),
         m_outputColor(),
-        m_world(),
+        m_world(XMMatrixIdentity()),
         m_bHasTextures(TRUE)
     {}
 
@@ -53,7 +53,7 @@ namespace library
         m_pixelShader(nullptr),
         m_textureFilePath(),
         m_outputColor(outputColor),
-        m_world(),
+        m_world(XMMatrixIdentity()),
         m_bHasTextures(FALSE)
     {}
 
@@ -135,9 +135,6 @@ namespace library
             if (FAILED(hr))
                 return hr;
         }
-
-        //Initialize the world matrix
-        m_world = XMMatrixIdentity();
 
         return S_OK;
     }

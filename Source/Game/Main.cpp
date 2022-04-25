@@ -85,7 +85,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-    
+
     std::shared_ptr<Cube> lightCube = std::make_shared<Cube>(color);
     lightCube->Translate(XMVectorSet(-5.77f, 5.77f, -5.77f, 0.0f));
     if (FAILED(game->GetRenderer()->AddRenderable(L"LightCube", lightCube)))
@@ -100,7 +100,8 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-    
+
+    //rotate cube(pointlight)
     XMStoreFloat4(&color, Colors::Red);
     std::shared_ptr<RotatingPointLight> rotatingPointLight = std::make_shared<RotatingPointLight>(
         XMFLOAT4(0.0f, 0.0f, -5.0f, 1.0f),
@@ -110,7 +111,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    //--------------------------------------------
     
+    //Rotatign Cube ---------------------------------------------
     std::shared_ptr<RotatingCube> rotatingLightCube = std::make_shared<RotatingCube>(color);
     rotatingLightCube->Translate(XMVectorSet(0.0f, 0.0f, -5.0f, 0.0f));
     if (FAILED(game->GetRenderer()->AddRenderable(L"RotatingLightCube", rotatingLightCube)))
@@ -125,7 +128,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-
+    //------------------------------------------------------
+    
+    //PHONG Cube ------------------------------------------
     std::shared_ptr<Cube> phongCube = std::make_shared<Cube>(L"seafloor.dds");
     if (FAILED(game->GetRenderer()->AddRenderable(L"PhongCube", phongCube)))
     {
@@ -139,6 +144,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    //------------------------------------------------------
 
     if (FAILED(game->Initialize(hInstance, nCmdShow)))
     {

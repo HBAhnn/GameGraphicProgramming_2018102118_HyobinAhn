@@ -503,9 +503,11 @@ namespace library
 
         m_immediateContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &cb1, 0, 0);
 
-        WCHAR szDebugMessage[64];  // 배열의 크기는 메시지의 길이에 따라 조정하시면 됩니다
+        /*
+        WCHAR szDebugMessage[64];
         swprintf_s(szDebugMessage, L"uMsg: \n");
         OutputDebugString(szDebugMessage);
+        */
 
         for(auto& each : m_renderables)
         {
@@ -576,6 +578,7 @@ namespace library
     --------------------------------------------------------------------*/
     HRESULT Renderer::SetVertexShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszVertexShaderName) 
     {
+        
         if (!m_renderables.count(pszRenderableName))
         {
             return E_FAIL;
