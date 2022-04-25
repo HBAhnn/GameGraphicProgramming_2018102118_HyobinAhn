@@ -101,7 +101,7 @@ namespace library
         hr = pDevice->CreateBuffer(&bd, &InitData, &m_indexBuffer);
         if (FAILED(hr))
             return hr;
-
+        
         //Create the constant buffer
         bd.Usage = D3D11_USAGE_DEFAULT;
         bd.ByteWidth = sizeof(CBChangesEveryFrame);

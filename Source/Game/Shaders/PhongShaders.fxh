@@ -106,8 +106,8 @@ struct PS_PHONG_INPUT
 {
 	float4 Position : SV_POSITION;
 	float2 Tex : TEXCOORD;
-	float3 Norm : NORMAL;
 	float4 WorldPos : POSITION;
+	float3 Norm : NORMAL;
 };
 
 /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
@@ -170,26 +170,44 @@ PS_LIGHT_CUBE_INPUT VSLightCube(VS_PHONG_INPUT input)
   TODO: Pixel Shader function PSLightCube definition (remove the comment)
 --------------------------------------------------------------------*/
 
+
 float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
 {
-    float3 diffuse = float3(0, 0, 0);    
 	float3 ambient = float3(0.1f,0.1f,0.1f);
 
-	float3 viewdirection = normalize(input.WorldPos - CameraPosition.xyz);
-	float3 specular = float3(0, 0, 0);
+	for (uint i = 0; i < NUM_LIGHTS; ++i)
+	{
+		ambient += float4(float3(0.1f, 0.1f, 0.1f) * LightColors[i].xyz, 1.0f);
+	}
+	ambient *= txDiffuse.Sample(samLinear, input.Tex);
 
-	for (uint i = 0; i < NUM_LIGHTS; ++i)    
-	{        
+
+
+	float3 viewdirection = normalize(CameraPosition.xyz - input.WorldPos);
+    float3 diffuse = float3(0, 0, 0);    
+
+	for (uint i = 0; i < NUM_LIGHTS; ++i)   
+	{
 		float3 lightDirection = normalize(input.WorldPos - LightPositions[i].xyz);
+		diffuse += saturate(dot(input.Norm, -lightDirection)) * LightColors[i];
+	}
+	diffuse *= txDiffuse.Sample(samLinear, input.Tex);
 
-		float3 reflectDirection = reflect(lightDirection, input.Norm);
 
-		diffuse += saturate(dot(input.Norm, -lightDirection)) * LightColors[i].xyz;
 
-		specular += saturate(pow(dot(-viewdirection, reflectDirection), 15.0f)) * LightColors[i];
+	float3 specular = float3(0,0,0);
+	float3 viewDirection = normalize(CameraPosition.xyz - input.WorldPos);
+	
+	for (uint i = 0; i < NUM_LIGHTS; ++i)   
+	{
+		 float3 lightDirection = normalize(input.WorldPos - LightPositions[i].xyz);
+		 float3 reflectDirection = reflect(lightDirection, input.Norm);
+		 specular += pow(saturate(dot(reflectDirection, viewDirection)), 20) * LightColors[i];
+	}
 
-	}    
-	return float4(ambient + diffuse + specular, 1) * txDiffuse.Sample(samLinear, input.Tex);;
+	specular *= txDiffuse.Sample(samLinear, input.Tex);
+	
+	return float4(ambient + diffuse + specular, 1);
 }
 
 

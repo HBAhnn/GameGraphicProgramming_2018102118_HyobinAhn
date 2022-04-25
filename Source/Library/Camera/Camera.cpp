@@ -130,13 +130,7 @@ namespace library
             && m_pitch + mouseRelativeMovement.Y * m_rotationSpeed * deltaTime > -XM_PIDIV2)
         {
             m_pitch += mouseRelativeMovement.Y * m_rotationSpeed * deltaTime;
-            /*
-            WCHAR szDebugMessage[64];
-            swprintf_s(szDebugMessage, L"pi: %f\n", XM_PIDIV2);
-            OutputDebugString(szDebugMessage);
-            swprintf_s(szDebugMessage, L"pitch: %f\n", m_pitch);
-            OutputDebugString(szDebugMessage);
-            */
+
         }
 
         if (directions.bRight == 1)

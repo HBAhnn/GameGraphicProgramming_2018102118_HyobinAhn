@@ -271,9 +271,6 @@ namespace library
         if (FAILED(hr)) 
             return hr;
 
-        m_immediateContext->VSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
-        m_immediateContext->PSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
-
         
         //Initialize renderables
         for (auto& renderables : m_renderables)
@@ -491,6 +488,9 @@ namespace library
                .View = XMMatrixTranspose(m_camera.GetView())
         };
 
+        m_immediateContext->VSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
+        m_immediateContext->PSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
+
         m_immediateContext->UpdateSubresource(m_camera.GetConstantBuffer().Get(), 0, nullptr, &cb, 0, 0);
 
         //Update the lights constant buffer
@@ -501,13 +501,11 @@ namespace library
         cb1.LightColors[0] = m_aPointLights[0].get()->GetColor();
         cb1.LightColors[1] = m_aPointLights[1].get()->GetColor();
 
+        m_immediateContext->VSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
+        m_immediateContext->PSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
+
         m_immediateContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &cb1, 0, 0);
 
-        /*
-        WCHAR szDebugMessage[64];
-        swprintf_s(szDebugMessage, L"uMsg: \n");
-        OutputDebugString(szDebugMessage);
-        */
 
         for(auto& each : m_renderables)
         {
@@ -533,14 +531,14 @@ namespace library
             //Rendering triangles
             m_immediateContext->VSSetShader(renderable->GetVertexShader().Get(), nullptr, 0);
 
-            m_immediateContext->VSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
+            
             m_immediateContext->VSSetConstantBuffers(1, 1, m_cbChangeOnResize.GetAddressOf());
             m_immediateContext->VSSetConstantBuffers(2, 1, renderable->GetConstantBuffer().GetAddressOf());
 
             m_immediateContext->PSSetShader(renderable->GetPixelShader().Get(), nullptr, 0);
 
-
             m_immediateContext->PSSetConstantBuffers(2, 1, renderable->GetConstantBuffer().GetAddressOf());
+
 
             if (renderable->HasTexture())
             {
