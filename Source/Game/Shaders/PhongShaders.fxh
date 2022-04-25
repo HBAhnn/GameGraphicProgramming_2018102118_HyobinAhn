@@ -87,9 +87,9 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 --------------------------------------------------------------------*/
 struct VS_PHONG_INPUT
 {
-    float4 Pos : POSITION;
-    float2 Tex : TEXCOORD0;
-    float3 Norm : NORMAL;
+	float4 Position : POSITION;
+	float2 TexCoord : TEXCOORD0;
+	float3 Normal : NORMAL;
 };
 
 /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
@@ -104,7 +104,7 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 
 struct PS_PHONG_INPUT
 {
-	float4 Pos : SV_POSITION;
+	float4 Position : SV_POSITION;
 	float2 Tex : TEXCOORD;
 	float3 Norm : NORMAL;
 	float4 WorldPos : POSITION;
@@ -122,7 +122,7 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 
 struct PS_LIGHT_CUBE_INPUT
 {
-	float4 Pos : SV_POSITION;
+	float4 Position : SV_POSITION;
 };
 
 //--------------------------------------------------------------------------------------
@@ -131,37 +131,34 @@ struct PS_LIGHT_CUBE_INPUT
 /*--------------------------------------------------------------------
   TODO: Vertex Shader function VSPhong definition (remove the comment)
 --------------------------------------------------------------------*/
-
-PS_PHONG_INPUT VSPhong(VS_PHONG_INPUT input)
-{
-    PS_PHONG_INPUT output = (PS_INPUT)0;
-    output.Pos = mul( input.Pos, World );
-    output.Pos = mul( output.Pos, View );
-    output.Pos = mul( output.Pos, Projection );
-
-    output.Norm = normalize(mul( float4( input.Norm, 0 ), World ).xyz);
-
-    output.WorldPos = mul(input.Pos, World);
-    output.Tex = input.Tex;
-    
-    return output;
-}
-
 /*--------------------------------------------------------------------
   TODO: Vertex Shader function VSLightCube definition (remove the comment)
 --------------------------------------------------------------------*/
 
-PS_LIGHT_CUBE_INPUT VSLightCube(VS_PHONG_INPUT input)
+PS_PHONG_INPUT VSPhong(VS_PHONG_INPUT input)
 {
-
-	PS_LIGHT_CUBE_INPUT output = (PS_LIGHT_CUBE_INPUT)0;
-    
-    output.Pos = mul(input.Pos, World );
-	output.Pos = mul(output.Pos, View);
-	output.Pos = mul(output.Pos, Projection);
+	PS_PHONG_INPUT output = (PS_PHONG_INPUT)0;
+	output.Position = mul(input.Position, World);
+	output.Position = mul(output.Position, View);
+	output.Position = mul(output.Position, Projection);
+	output.Tex = input.TexCoord;
+	output.Norm = normalize(mul(float4(input.Normal, 0), World).xyz);
+	output.WorldPos = mul(input.Position, World);
 
 	return output;
 }
+
+PS_LIGHT_CUBE_INPUT VSLightCube(VS_PHONG_INPUT input)
+{
+	PS_LIGHT_CUBE_INPUT output = (PS_LIGHT_CUBE_INPUT)0;
+
+	output.Position = mul(input.Position, World);
+	output.Position = mul(output.Position, View);
+	output.Position = mul(output.Position, Projection);
+
+	return output;
+}
+
 
 //--------------------------------------------------------------------------------------
 // Pixel Shader
@@ -169,16 +166,23 @@ PS_LIGHT_CUBE_INPUT VSLightCube(VS_PHONG_INPUT input)
 /*--------------------------------------------------------------------
   TODO: Pixel Shader function PSPhong definition (remove the comment)
 --------------------------------------------------------------------*/
-
-float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
-{
-    float3 ambient = float3(0.1f,0.1f,0.1f);
-    return float4(ambient,1.0f);
-}
-
 /*--------------------------------------------------------------------
   TODO: Pixel Shader function PSLightCube definition (remove the comment)
 --------------------------------------------------------------------*/
+
+float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
+{
+
+    float3 diffuse;    
+	for (uint i = 0; i < 2; ++i)    
+	{        
+		float3 lightDirection = normalize(input.WorldPos - LightPositions[i].xyz);
+
+		diffuse += dot(input.Norm, -lightDirection) * LightColors[i].xyz;
+	}    
+	return float4(saturate(diffuse), 1);
+}
+
 
 float4 PSLightCube(PS_LIGHT_CUBE_INPUT input) : SV_Target
 {

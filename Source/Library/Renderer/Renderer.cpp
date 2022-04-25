@@ -256,6 +256,24 @@ namespace library
         CBChangeOnResize cbChangesOnResize;
         cbChangesOnResize.Projection = XMMatrixTranspose(m_projection);
         m_immediateContext->UpdateSubresource(m_cbChangeOnResize.Get(), 0, nullptr, &cbChangesOnResize, 0, 0);
+
+        //Create Light Constant buffer
+        D3D11_BUFFER_DESC bd1 = {
+           .ByteWidth = sizeof(CBLights),
+           .Usage = D3D11_USAGE_DEFAULT,
+           .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+           .CPUAccessFlags = 0
+        };
+
+        CBLights cbLights;
+
+        hr = m_d3dDevice->CreateBuffer(&bd1, nullptr, &m_cbLights);
+        if (FAILED(hr)) 
+            return hr;
+
+        m_immediateContext->VSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
+        m_immediateContext->PSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
+
         
         //Initialize renderables
         for (auto& renderables : m_renderables)
@@ -336,6 +354,7 @@ namespace library
         if (index >= NUM_LIGHTS)
             return E_FAIL;
         m_aPointLights[index] = pPointLight;
+        return S_OK;
     }
 
 
@@ -444,6 +463,10 @@ namespace library
         {
             renderable.second->Update(deltaTime);
         }
+        for (auto& point_light : m_aPointLights)
+        {
+            point_light.get()->Update(deltaTime);
+        }
         m_camera.Update(deltaTime);
     }
 
@@ -480,6 +503,10 @@ namespace library
 
         m_immediateContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &cb1, 0, 0);
 
+        WCHAR szDebugMessage[64];  // 배열의 크기는 메시지의 길이에 따라 조정하시면 됩니다
+        swprintf_s(szDebugMessage, L"uMsg: \n");
+        OutputDebugString(szDebugMessage);
+
         for(auto& each : m_renderables)
         {
             std::shared_ptr<Renderable> renderable = each.second;
@@ -496,7 +523,8 @@ namespace library
 
             //Create and update constant buffer
             CBChangesEveryFrame cb = {
-                .World = XMMatrixTranspose(renderable->GetWorldMatrix())
+                .World = XMMatrixTranspose(renderable->GetWorldMatrix()),
+                .OutputColor = renderable->GetOutputColor()
             };
             m_immediateContext->UpdateSubresource(renderable->GetConstantBuffer().Get(), 0, NULL, &cb, 0, 0);
 
