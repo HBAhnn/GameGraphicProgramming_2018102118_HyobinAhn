@@ -487,6 +487,7 @@ namespace library
         CBChangeOnCameraMovement cb = {
                .View = XMMatrixTranspose(m_camera.GetView())
         };
+        XMStoreFloat4(&cb.CameraPosition, m_camera.GetEye());
 
         m_immediateContext->VSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
         m_immediateContext->PSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
@@ -500,6 +501,8 @@ namespace library
         cb1.LightPositions[1] = m_aPointLights[1].get()->GetPosition();
         cb1.LightColors[0] = m_aPointLights[0].get()->GetColor();
         cb1.LightColors[1] = m_aPointLights[1].get()->GetColor();
+
+
 
         m_immediateContext->VSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
         m_immediateContext->PSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
