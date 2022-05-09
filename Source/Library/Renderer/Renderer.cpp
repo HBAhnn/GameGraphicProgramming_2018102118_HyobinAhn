@@ -545,14 +545,18 @@ namespace library
 
             if (renderable->HasTexture())
             {
-                //Set texture resource view of the renderable into the pixel shader
-                m_immediateContext->PSSetShaderResources(0, 1, renderable->GetTextureResourceView().GetAddressOf());
+                for (UINT i = 0; i < renderable->GetNumMeshes(); i++)
+                {
+                    m_immediateContext->PSSetShaderResources(0, 1, renderable->GetMaterial(renderable->GetMesh(i).uMaterialIndex).pDiffuse->GetTextureResourceView().GetAddressOf());
+                    m_immediateContext->PSSetSamplers(0, 1, renderable->GetMaterial(renderable->GetMesh(i).uMaterialIndex).pDiffuse->GetSamplerState().GetAddressOf());
 
-                //Set sampler state of the renderable into the pixel shader
-                m_immediateContext->PSSetSamplers(0, 1, renderable->GetSamplerState().GetAddressOf());
+                    m_immediateContext->DrawIndexed(renderable->GetMesh(i).uNumIndices, renderable->GetMesh(i).uBaseIndex, renderable->GetMesh(i).uBaseVertex);
+                }
+            }
+            else {
+                m_immediateContext->DrawIndexed(renderable->GetNumIndices(), 0, 0);
             }
 
-            m_immediateContext->DrawIndexed(renderable->GetNumIndices(), 0, 0);
         }
         m_swapChain->Present(0, 0);
     }
@@ -579,20 +583,17 @@ namespace library
     --------------------------------------------------------------------*/
     HRESULT Renderer::SetVertexShaderOfRenderable(_In_ PCWSTR pszRenderableName, _In_ PCWSTR pszVertexShaderName) 
     {
-        
-        if (!m_renderables.count(pszRenderableName))
+        std::unordered_map<std::wstring, std::shared_ptr<Renderable>>::const_iterator iRenderable = m_renderables.find(pszRenderableName);
+        std::unordered_map<std::wstring, std::shared_ptr<VertexShader>>::const_iterator iVertexShader = m_vertexShaders.find(pszVertexShaderName);
+
+        if (iRenderable == m_renderables.end() || iVertexShader == m_vertexShaders.end())
         {
             return E_FAIL;
         }
-        else
-        {
-            if (m_vertexShaders.count(pszVertexShaderName))
-            {
-                m_renderables.find(pszRenderableName)->second->SetVertexShader(m_vertexShaders.find(pszVertexShaderName)->second);
-                return S_OK;
-            }
-        }
-        return E_FAIL;
+
+        iRenderable->second->SetVertexShader(iVertexShader->second);
+
+        return S_OK;
     }
 
 
