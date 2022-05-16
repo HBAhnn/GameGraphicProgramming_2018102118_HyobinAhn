@@ -49,6 +49,12 @@
     <Filter Include="소스 파일\texture">
       <UniqueIdentifier>{25eac5db-1dc2-48fd-9728-1646b5808f8c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\scene">
+      <UniqueIdentifier>{77f52067-9855-4e81-9424-f28878500449}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\library\scene">
+      <UniqueIdentifier>{79f90a16-267b-4910-a7f5-ba9af08a4667}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
@@ -105,6 +111,15 @@
     <ClInclude Include="Texture\WICTextureLoader.h">
       <Filter>헤더 파일\library\texture</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\InstancedRenderable.h">
+      <Filter>헤더 파일\library\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>헤더 파일\library\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Voxel.h">
+      <Filter>헤더 파일\library\scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game\Game.cpp">
@@ -148,6 +163,15 @@
     </ClCompile>
     <ClCompile Include="Texture\DDSTextureLoader.cpp">
       <Filter>소스 파일\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\InstancedRenderable.cpp">
+      <Filter>소스 파일\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>소스 파일\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Voxel.cpp">
+      <Filter>소스 파일\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

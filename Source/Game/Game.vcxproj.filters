@@ -72,5 +72,13 @@
     <None Include="Shaders\PhongShaders.fxh">
       <Filter>헤더 파일\Shader</Filter>
     </None>
+    <None Include="Shaders\VoxelShaders.fxh">
+      <Filter>헤더 파일\Shader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="HeightMap.txt">
+      <Filter>리소스 파일</Filter>
+    </Text>
   </ItemGroup>
 </Project>

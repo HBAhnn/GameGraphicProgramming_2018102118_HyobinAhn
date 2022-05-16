@@ -126,6 +126,10 @@
   <ItemGroup>
     <None Include="Shaders\PhongShaders.fxh" />
     <None Include="Shaders\Shaders.fxh" />
+    <None Include="Shaders\VoxelShaders.fxh" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="HeightMap.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
