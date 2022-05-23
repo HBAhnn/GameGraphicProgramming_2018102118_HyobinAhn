@@ -173,6 +173,9 @@
     <ClCompile Include="Scene\Voxel.cpp">
       <Filter>소스 파일\scene</Filter>
     </ClCompile>
+    <ClCompile Include="Shader\SkinningVertexShader.cpp">
+      <Filter>소스 파일\Shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Game\seafloor.dds">

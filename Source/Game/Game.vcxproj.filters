@@ -75,6 +75,9 @@
     <None Include="Shaders\VoxelShaders.fxh">
       <Filter>헤더 파일\Shader</Filter>
     </None>
+    <None Include="Shaders\SkinningShaders.fxh">
+      <Filter>헤더 파일\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="HeightMap.txt">

@@ -38,7 +38,8 @@ namespace library
         m_cbLights(nullptr),
         m_aPointLights(),
         m_pszMainSceneName(),
-        m_scenes()
+        m_scenes(),
+        m_models()
     {}
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
@@ -280,6 +281,14 @@ namespace library
                 return hr;
         }
 
+        //initialize models
+        for (auto& models : m_models)
+        {
+            hr = models.second->Initialize(m_d3dDevice.Get(), m_immediateContext.Get());
+            if (FAILED(hr))
+                return hr;
+        }
+
         //Initialize vertexShaders
         for (auto& vertexShaders : m_vertexShaders)
         {
@@ -517,6 +526,10 @@ namespace library
         {
             point_light.get()->Update(deltaTime);
         }
+        for (auto& models : m_models)
+        {
+            models.second->Update(deltaTime);
+        }
         m_camera.Update(deltaTime);
     }
 
@@ -648,6 +661,72 @@ namespace library
 
                 m_immediateContext->DrawIndexedInstanced(voxel->GetNumIndices(), voxel->GetNumInstances(), 0, 0, 0);
             }
+        }
+
+        for (auto& each : m_models)
+        {
+            std::shared_ptr<Model> model = each.second;
+            //Set vertex buffer
+            UINT aStrides[2] = { static_cast<UINT>(sizeof(SimpleVertex)), static_cast<UINT>(sizeof(AnimationData)) };
+            UINT aOffsets[2] = { 0u, 0u };
+
+            ID3D11Buffer* aBuffers[2]
+            {
+               model->GetVertexBuffer().Get(),
+               model->GetAnimationBuffer().Get()
+            };
+
+            m_immediateContext->IASetVertexBuffers(0, 1, &aBuffers[0], &aStrides[0], &aOffsets[0]);
+            m_immediateContext->IASetVertexBuffers(0, 1, &aBuffers[1], &aStrides[1], &aOffsets[1]);
+
+            //Set Index buffer
+            m_immediateContext->IASetIndexBuffer(model->GetIndexBuffer().Get(), DXGI_FORMAT_R16_UINT, 0);
+
+            //Set input layer
+            m_immediateContext->IASetInputLayout(model->GetVertexLayout().Get());
+
+            //Create and update constant buffer
+            CBChangesEveryFrame cb = {
+                .World = XMMatrixTranspose(model->GetWorldMatrix()),
+                .OutputColor = model->GetOutputColor()
+            };
+
+            m_immediateContext->UpdateSubresource(model->GetConstantBuffer().Get(), 0, NULL, &cb, 0, 0);
+
+            CBSkinning cbs;
+            for (int i = 0; i < model->GetBoneTransforms().size(); i++)
+            {
+                cbs.BoneTransforms[i] = model->GetBoneTransforms()[i];
+            }
+
+            m_immediateContext->UpdateSubresource(model->GetConstantBuffer().Get(), 0, NULL, &cbs, 0, 0);
+
+            //Rendering triangles
+            m_immediateContext->VSSetShader(model->GetVertexShader().Get(), nullptr, 0);
+
+
+            m_immediateContext->VSSetConstantBuffers(1, 1, m_cbChangeOnResize.GetAddressOf());
+            m_immediateContext->VSSetConstantBuffers(2, 1, model->GetConstantBuffer().GetAddressOf());
+
+            m_immediateContext->PSSetShader(model->GetPixelShader().Get(), nullptr, 0);
+
+            m_immediateContext->PSSetConstantBuffers(2, 1, model->GetConstantBuffer().GetAddressOf());
+
+
+            if (model->HasTexture())
+            {
+                for (UINT i = 0; i < model->GetNumMeshes(); i++)
+                {
+                    m_immediateContext->PSSetShaderResources(0, 1, model->GetMaterial(model->GetMesh(i).uMaterialIndex).pDiffuse->GetTextureResourceView().GetAddressOf());
+                    m_immediateContext->PSSetSamplers(0, 1, model->GetMaterial(model->GetMesh(i).uMaterialIndex).pDiffuse->GetSamplerState().GetAddressOf());
+
+                    m_immediateContext->DrawIndexed(model->GetMesh(i).uNumIndices, model->GetMesh(i).uBaseIndex, model->GetMesh(i).uBaseVertex);
+                }
+            }
+            else {
+                m_immediateContext->DrawIndexed(model->GetNumIndices(), 0, 0);
+            }
+
         }
         m_swapChain->Present(0, 0);
     }
@@ -790,5 +869,75 @@ namespace library
     --------------------------------------------------------------------*/
     D3D_DRIVER_TYPE Renderer::GetDriverType() const {
         return m_driverType;
+    }
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Renderer::AddModel
+      Summary:  Add a model object
+      Args:     PCWSTR pszModelName
+                  Key of the model object
+                const std::shared_ptr<Model>& pModel
+                  Shared pointer to the model object
+      Modifies: [m_models].
+      Returns:  HRESULT
+                  Status code.
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Renderer::AddModel definition (remove the comment)
+    --------------------------------------------------------------------*/
+    HRESULT Renderer::AddModel(_In_ PCWSTR pszModelName, _In_ const std::shared_ptr<Model>& pModel)
+    {
+        if (m_models.count(pszModelName))
+        {
+            return E_FAIL;
+        }
+        else
+        {
+            m_models.insert(std::make_pair(pszModelName, pModel));
+            return S_OK;
+        }
+    }
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Renderer::SetVertexShaderOfModel
+      Summary:  Sets the pixel shader for a model
+      Args:     PCWSTR pszModelName
+                  Key of the model
+                PCWSTR pszVertexShaderName
+                  Key of the vertex shader
+      Modifies: [m_renderables].
+      Returns:  HRESULT
+                  Status code
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Renderer::SetVertexShaderOfModel definition (remove the comment)
+    --------------------------------------------------------------------*/
+    HRESULT Renderer::SetVertexShaderOfModel(_In_ PCWSTR pszModelName, _In_ PCWSTR pszVertexShaderName)
+    {
+        if (!m_models.count(pszModelName))
+            return E_FAIL;
+        m_models[pszModelName]->SetVertexShader(m_vertexShaders[pszVertexShaderName]);
+    }
+
+
+    /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
+      Method:   Renderer::SetPixelShaderOfModel
+      Summary:  Sets the pixel shader for a model
+      Args:     PCWSTR pszModelName
+                  Key of the model
+                PCWSTR pszPixelShaderName
+                  Key of the pixel shader
+      Modifies: [m_renderables].
+      Returns:  HRESULT
+                  Status code
+    M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M---M-M*/
+    /*--------------------------------------------------------------------
+      TODO: Renderer::SetPixelShaderOfModel definition (remove the comment)
+    --------------------------------------------------------------------*/
+    HRESULT Renderer::SetPixelShaderOfModel(_In_ PCWSTR pszModelName, _In_ PCWSTR pszVertexShaderName)
+    {
+        if (!m_models.count(pszModelName))
+            return E_FAIL;
+        m_models[pszModelName]->SetPixelShader(m_pixelShaders[pszVertexShaderName]);
     }
 }
