@@ -12,8 +12,8 @@
 /*--------------------------------------------------------------------
   TODO: Declare a diffuse texture and a sampler state (remove the comment)
 --------------------------------------------------------------------*/
-Texture2D txDiffuse : register( t0 );
-SamplerState samLinear : register( s0 );
+Texture2D txDiffuse[2] : register( t0 );
+SamplerState samLinear[2] : register(s0);
 
 //--------------------------------------------------------------------------------------
 // Constant Buffer Variables
@@ -59,7 +59,8 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 cbuffer cbChangesEveryFrame : register( b2 )
 {
 	matrix World;
-	float4 OutputColor;
+    float4 OutputColor;
+    bool HasNormalMap;
 };
 
 /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
@@ -87,9 +88,13 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 --------------------------------------------------------------------*/
 struct VS_PHONG_INPUT
 {
-	float4 Position : POSITION;
-	float2 TexCoord : TEXCOORD0;
-	float3 Normal : NORMAL;
+    float4 Position : POSITION;
+    float2 TexCoord : TEXCOORD0;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    float3 Bitangent : BITANGENT;
+    row_major matrix mTransform : INSTANCE_TRANSFORM;
+
 };
 
 /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
@@ -104,10 +109,12 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 
 struct PS_PHONG_INPUT
 {
-	float4 Position : SV_POSITION;
-	float2 Tex : TEXCOORD;
-	float4 WorldPos : POSITION;
-	float3 Norm : NORMAL;
+    float4 Position : SV_POSITION;
+    float2 TexCoord : TEXCOORD0;
+    float3 Normal : NORMAL;
+    float3 WorldPosition : WORLDPOS;
+    float3 Tangent : TANGENT;
+    float3 Bitangent : BITANGE;
 };
 
 /*C+C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C+++C
@@ -138,12 +145,24 @@ struct PS_LIGHT_CUBE_INPUT
 PS_PHONG_INPUT VSPhong(VS_PHONG_INPUT input)
 {
 	PS_PHONG_INPUT output = (PS_PHONG_INPUT)0;
+	
 	output.Position = mul(input.Position, World);
 	output.Position = mul(output.Position, View);
 	output.Position = mul(output.Position, Projection);
-	output.Tex = input.TexCoord;
-	output.Norm = normalize(mul(float4(input.Normal, 0), World).xyz);
-	output.WorldPos = mul(input.Position, World);
+	
+    output.TexCoord = input.TexCoord;
+	
+    output.Normal = normalize(mul(float4(input.Normal, 0), World).xyz);
+    output.WorldPosition = mul(input.Position, World);
+	
+    if (HasNormalMap)
+    {
+    // Calculate the tangent vector against the world matrix only and then normalize the final value.
+        output.Tangent = normalize(mul(float4(input.Tangent, 0), World).xyz);
+
+    // Calculate the binormal vector against the world matrix only and then normalize the final value.
+        output.Bitangent = normalize(mul(float4(input.Bitangent, 0), World).xyz);
+    }
 
 	return output;
 }
@@ -173,39 +192,55 @@ PS_LIGHT_CUBE_INPUT VSLightCube(VS_PHONG_INPUT input)
 
 float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
 {
+    float3 normal = normalize(input.Normal);
+    if (HasNormalMap)
+    {
+        // Sample the pixel in the normal map.     
+        float4 bumpMap = txDiffuse[1].Sample(samLinear[1], input.TexCoord);
+        
+        // Expand the range of the normal value from (0, +1) to (-1, +1).    
+        bumpMap = (bumpMap * 2.0f) - 1.0f;
+        
+        // Calculate the normal from the data in the normal map.  
+        float3 bumpNormal = (bumpMap.x * input.Tangent) + (bumpMap.y * input.Bitangent) + (bumpMap.z * normal);
+        
+        // Normalize the resulting bump normal and replace existing normal     
+        normal = normalize(bumpNormal);
+    }
+    
 	float3 ambient = float3(0.1f,0.1f,0.1f);
 
 	for (uint i = 0; i < NUM_LIGHTS; ++i)
 	{
 		ambient += float4(float3(0.1f, 0.1f, 0.1f) * LightColors[i].xyz, 1.0f);
 	}
-	ambient *= txDiffuse.Sample(samLinear, input.Tex);
+	ambient *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 
 
 
-	float3 viewdirection = normalize(CameraPosition.xyz - input.WorldPos);
+	float3 viewdirection = normalize(CameraPosition.xyz - input.WorldPosition);
     float3 diffuse = float3(0, 0, 0);    
 
 	for (uint i = 0; i < NUM_LIGHTS; ++i)   
 	{
-		float3 lightDirection = normalize(input.WorldPos - LightPositions[i].xyz);
-		diffuse += saturate(dot(input.Norm, -lightDirection)) * LightColors[i];
-	}
-	diffuse *= txDiffuse.Sample(samLinear, input.Tex);
+		float3 lightDirection = normalize(input.WorldPosition - LightPositions[i].xyz);
+        diffuse += saturate(dot(normal, -lightDirection)) * LightColors[i];
+    }
+	diffuse *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 
 
 
 	float3 specular = float3(0,0,0);
-	float3 viewDirection = normalize(CameraPosition.xyz - input.WorldPos);
+    float3 viewDirection = normalize(CameraPosition.xyz - input.WorldPosition);
 	
 	for (uint i = 0; i < NUM_LIGHTS; ++i)   
 	{
-		 float3 lightDirection = normalize(input.WorldPos - LightPositions[i].xyz);
-		 float3 reflectDirection = reflect(lightDirection, input.Norm);
+        float3 lightDirection = normalize(input.WorldPosition - LightPositions[i].xyz);
+        float3 reflectDirection = reflect(lightDirection, normal);
 		 specular += pow(saturate(dot(reflectDirection, viewDirection)), 20) * LightColors[i];
 	}
 
-	specular *= txDiffuse.Sample(samLinear, input.Tex);
+	specular *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 	
 	return float4(ambient + diffuse + specular, 1);
 }
