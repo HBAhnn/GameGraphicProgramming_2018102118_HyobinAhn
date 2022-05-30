@@ -128,8 +128,9 @@ struct PS_INPUT
 PS_INPUT VSVoxel(VS_INPUT input)
 {
     PS_INPUT output = (PS_INPUT) 0;
-    
-    output.Position = mul(input.Position, World);
+        
+    output.Position = mul(input.Position, input.mTransform);
+    output.Position = mul(output.Position, World);
     output.Position = mul(output.Position, View);
     output.Position = mul(output.Position, Projection);
     
@@ -137,7 +138,7 @@ PS_INPUT VSVoxel(VS_INPUT input)
     
     output.Normal = normalize(mul(float4(input.Normal, 0), World).xyz);
     
-    output.WorldPosition = mul(input.Position, input.mTransform);
+    output.WorldPosition = mul(output.Position, input.mTransform);
     
     if (HasNormalMap)
     {
@@ -158,7 +159,7 @@ PS_INPUT VSVoxel(VS_INPUT input)
   TODO: Pixel Shader function PSVoxel definition (remove the comment)
 --------------------------------------------------------------------*/
 float4 PSVoxel(PS_INPUT input) : SV_Target
-{   
+{
     float3 normal = normalize(input.Normal);
     if (HasNormalMap)
     {
@@ -181,6 +182,7 @@ float4 PSVoxel(PS_INPUT input) : SV_Target
     {
         ambient += float4(float3(0.1f, 0.1f, 0.1f) * LightColors[i].xyz, 1.0f);
     }
+    ambient *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 
 
 
@@ -192,6 +194,21 @@ float4 PSVoxel(PS_INPUT input) : SV_Target
         float3 lightDirection = normalize(input.WorldPosition - LightPositions[i].xyz);
         diffuse += saturate(dot(normal, -lightDirection)) * LightColors[i];
     }
+    diffuse *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 
-    return float4((ambient + diffuse, 1) * txDiffuse[0].Sample(samLinear[0], input.TexCoord));
+
+
+    float3 specular = float3(0, 0, 0);
+    float3 viewDirection = normalize(CameraPosition.xyz - input.WorldPosition);
+	
+    for (uint i = 0; i < NUM_LIGHTS; ++i)
+    {
+        float3 lightDirection = normalize(input.WorldPosition - LightPositions[i].xyz);
+        float3 reflectDirection = reflect(lightDirection, normal);
+        specular += pow(saturate(dot(reflectDirection, viewDirection)), 20) * LightColors[i];
+    }
+
+    specular *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
+	
+    return float4(diffuse, 1);
 }

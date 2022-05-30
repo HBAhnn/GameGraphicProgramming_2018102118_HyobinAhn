@@ -531,7 +531,7 @@ namespace library
 
             // Set the instance buffer
             stride = sizeof(InstanceData);
-            m_immediateContext->IASetVertexBuffers(1, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetInstanceBuffer().GetAddressOf(), &stride, &offset);
+            m_immediateContext->IASetVertexBuffers(2, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetInstanceBuffer().GetAddressOf(), &stride, &offset);
 
             // Set the index buffer 
             m_immediateContext->IASetIndexBuffer(m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetIndexBuffer().Get(), DXGI_FORMAT_R16_UINT, 0);
@@ -652,13 +652,13 @@ namespace library
             m_immediateContext->VSSetConstantBuffers(1, 1, m_cbChangeOnResize.GetAddressOf());
             m_immediateContext->VSSetConstantBuffers(2, 1, modelElem->second->GetConstantBuffer().GetAddressOf());
             m_immediateContext->VSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
-            m_immediateContext->VSSetConstantBuffers(4, 1, modelElem->second->GetSkinningConstantBuffer().GetAddressOf());
+            //m_immediateContext->VSSetConstantBuffers(4, 1, modelElem->second->GetSkinningConstantBuffer().GetAddressOf());
 
             m_immediateContext->PSSetShader(modelElem->second->GetPixelShader().Get(), nullptr, 0);
             m_immediateContext->PSSetConstantBuffers(0, 1, m_camera.GetConstantBuffer().GetAddressOf());
             m_immediateContext->PSSetConstantBuffers(2, 1, modelElem->second->GetConstantBuffer().GetAddressOf());
             m_immediateContext->PSSetConstantBuffers(3, 1, m_cbLights.GetAddressOf());
-            m_immediateContext->PSSetConstantBuffers(4, 1, modelElem->second->GetSkinningConstantBuffer().GetAddressOf());
+            //m_immediateContext->PSSetConstantBuffers(4, 1, modelElem->second->GetSkinningConstantBuffer().GetAddressOf());
 
             if (modelElem->second->HasTexture())
             {
