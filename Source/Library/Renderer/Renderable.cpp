@@ -65,7 +65,7 @@ namespace library
             return hr;
 
         //Call calculateNormalMapVectors function to compute tangent/bitangent vectors manually
-        if (m_aNormalData.empty() && HasTexture())
+        if (m_aNormalData.empty())
         {
             calculateNormalMapVectors();
         }

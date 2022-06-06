@@ -161,6 +161,7 @@ PS_INPUT VSVoxel(VS_INPUT input)
 float4 PSVoxel(PS_INPUT input) : SV_Target
 {
     float3 normal = normalize(input.Normal);
+    
     if (HasNormalMap)
     {
         // Sample the pixel in the normal map.     
@@ -175,6 +176,7 @@ float4 PSVoxel(PS_INPUT input) : SV_Target
         // Normalize the resulting bump normal and replace existing normal     
         normal = normalize(bumpNormal);
     }
+
     
     float3 ambient = float3(0.1f, 0.1f, 0.1f);
 

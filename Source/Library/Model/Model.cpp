@@ -79,10 +79,10 @@ namespace library
 	Model::Model(_In_ const std::filesystem::path& filePath) :
 		Renderable(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)),
 		m_filePath(filePath),
-		m_animationBuffer(),
+		m_animationBuffer(nullptr),
 		m_skinningConstantBuffer(),
 		m_aVertices(),
-		m_aAnimationData(),
+		m_aAnimationData(std::vector<AnimationData>()),
 		m_aIndices(),
 		m_aBoneData(),
 		m_aBoneInfo(),
@@ -142,19 +142,23 @@ namespace library
 			OutputDebugStringA(sm_pImporter->GetErrorString());
 			OutputDebugString(L"\n");
 		}
-
+		
 		// Create the vertex buffer 
 		D3D11_BUFFER_DESC bd =
 		{
 			.ByteWidth = static_cast<UINT>(sizeof(AnimationData) * m_aAnimationData.size()),
 			.Usage = D3D11_USAGE_DEFAULT,
 			.BindFlags = D3D11_BIND_VERTEX_BUFFER,
-			.CPUAccessFlags = 0
+			.CPUAccessFlags = 0,
+			.MiscFlags = 0
 		};
+		
 
 		D3D11_SUBRESOURCE_DATA initData =
 		{
-			.pSysMem = &m_aAnimationData[0]
+			.pSysMem = &m_aAnimationData[0],
+			.SysMemPitch = 0u,
+			.SysMemSlicePitch = 0u
 		};
 
 		hr = pDevice->CreateBuffer(&bd, &initData, m_animationBuffer.GetAddressOf());
@@ -173,8 +177,9 @@ namespace library
 		hr = pDevice->CreateBuffer(&bd, nullptr, m_skinningConstantBuffer.GetAddressOf());
 		if (FAILED(hr))
 			return hr;
+		
 
-		return hr;
+		return S_OK;
 	}
 
 	/*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
