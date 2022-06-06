@@ -233,7 +233,7 @@ float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
         
     }
     
-    float3 ambient = float3(0.1f, 0.1f, 0.1f);
+    float3 ambient = float3(0, 0, 0);
     float3 diffuse = float3(0, 0, 0);
     float3 specular = float3(0, 0, 0);
     
@@ -255,11 +255,13 @@ float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
         float3 reflectDirection = reflect(lightDirection, normal);
         specular += pow(saturate(dot(reflectDirection, viewdirection)), 20) * PointLights[0].Color * attenuation;
     }
-	ambient *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
+    
+    ambient *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 	diffuse *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 	specular *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
+    
  
-	
+    //return float4(input.WorldPosition.xyz, 1);
     return float4(ambient + diffuse + specular, 1);
 }
 

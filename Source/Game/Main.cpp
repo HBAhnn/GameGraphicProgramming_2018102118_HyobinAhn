@@ -326,8 +326,8 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     //Light Attenuation
     XMStoreFloat4(&color, Colors::White);
     std::shared_ptr<Cube> floorCube = std::make_shared<Cube>(color);
-    floorCube->Translate(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
-    floorCube->Scale(20.0f, 0.1f, 20.0f);
+    floorCube->Scale(5.0f, 1.0f, 5.0f);
+    floorCube->Translate(XMVectorSet(0.0f, -10.0f, 0.0f, 1.0f));
 
     if (FAILED(mainScene->AddRenderable(L"FloorCube", floorCube)))
     {
@@ -345,9 +345,9 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     XMStoreFloat4(&color, Colors::Orange);
     
     std::shared_ptr<library::PointLight> directionalLight = std::make_shared<library::PointLight>(
-        XMFLOAT4(0.f, 30.f, 0.f, 1.0f),
+        XMFLOAT4(0.f, -5.0f, 0.f, 1.0f),
         color,
-        45.0f
+        400.0f
         );
     if (FAILED(mainScene->AddPointLight(0, directionalLight)))
     {
@@ -356,7 +356,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     
 
     std::shared_ptr<Cube> pointLight = std::make_shared<Cube>(color);
-    pointLight->Translate(XMVectorSet(0.0f, 30.0f, 0.0f, 0.0f));
+    pointLight->Translate(XMVectorSet(0.0f, -5.0f, 0.0f, 0.0f));
     if (FAILED(mainScene->AddRenderable(L"PointLight", pointLight)))
     {
         return 0;
@@ -393,6 +393,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         return 0;
     }
 
+    /*
     std::shared_ptr<RotatingCube> rotatingCube = std::make_shared<RotatingCube>(color);
     if (FAILED(mainScene->AddRenderable(L"RotatingCube", rotatingCube)))
     {
@@ -406,6 +407,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    */
 
     if (FAILED(game->Initialize(hInstance, nCmdShow)))
     {
