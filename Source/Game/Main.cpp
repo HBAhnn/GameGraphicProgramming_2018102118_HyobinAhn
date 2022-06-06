@@ -343,8 +343,8 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     XMStoreFloat4(&color, Colors::White);
     std::shared_ptr<Cube> floorCube = std::make_shared<Cube>(color);
-    //floorCube->Translate(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
-    //floorCube->Scale(80.0f, 0.1f, 80.0f);
+    floorCube->Translate(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+    floorCube->Scale(80.0f, 0.1f, 80.0f);
 
     if (FAILED(mainScene->AddRenderable(L"FloorCube", floorCube)))
     {

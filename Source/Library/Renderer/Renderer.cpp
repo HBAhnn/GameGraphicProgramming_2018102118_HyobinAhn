@@ -470,24 +470,15 @@ namespace library
         XMStoreFloat4(&cbChangeOnCameraMovement.CameraPosition, m_camera.GetEye());
         m_immediateContext->UpdateSubresource(m_camera.GetConstantBuffer().Get(), 0, nullptr, &cbChangeOnCameraMovement, 0, 0);
 
-        D3D11_BUFFER_DESC bd =
-        {
-            .ByteWidth = sizeof(CBLights),
-            .Usage = D3D11_USAGE_DEFAULT,
-            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-            .CPUAccessFlags = 0,
-        };
-
-        m_d3dDevice->CreateBuffer(&bd, nullptr, m_cbLights.GetAddressOf());
-
         // Set the constant buffer to each shaders accordingly
         CBLights cbLights;
+
         for (int i = 0; i < NUM_LIGHTS; i++)
         {
             cbLights.LightPositions[i] = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetPosition();
             cbLights.LightColors[i] = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetColor();
-            cbLights.LightViews[i] = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetViewMatrix();
-            cbLights.LightProjections[i] = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetProjectionMatrix();
+            cbLights.LightViews[i] = XMMatrixTranspose(m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetViewMatrix());
+            cbLights.LightProjections[i] = XMMatrixTranspose(m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetProjectionMatrix());
         }
         m_immediateContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &cbLights, 0, 0);
 
@@ -506,9 +497,6 @@ namespace library
 
             // Set the index buffer 
             m_immediateContext->IASetIndexBuffer(renderablesElem->second->GetIndexBuffer().Get(), DXGI_FORMAT_R16_UINT, 0);
-
-            // Set primitive topology
-            m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             // Set the input layout
             m_immediateContext->IASetInputLayout(renderablesElem->second->GetVertexLayout().Get());
@@ -537,13 +525,23 @@ namespace library
                 for (UINT i = 0; i < renderablesElem->second->GetNumMeshes(); ++i)
                 {
                     UINT MaterialIndex = renderablesElem->second->GetMesh(i).uMaterialIndex;
-                    m_immediateContext->PSSetShaderResources(0, 1, renderablesElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetTextureResourceView().GetAddressOf());
-                    m_immediateContext->PSSetSamplers(0, 1, renderablesElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetSamplerState().GetAddressOf());
 
-                    //start slot 0? 1?
-                    m_immediateContext->PSSetShaderResources(1, 1, renderablesElem->second->GetMaterial(MaterialIndex)->pNormal->GetTextureResourceView().GetAddressOf());
-                    m_immediateContext->PSSetSamplers(1, 1, renderablesElem->second->GetMaterial(MaterialIndex)->pNormal->GetSamplerState().GetAddressOf());
+                    if (renderablesElem->second->GetMaterial(MaterialIndex)->pDiffuse)
+                    {
+                        // Set texture resource view of the renderable into the pixel shader
+                        m_immediateContext->PSSetShaderResources(0u, 1u, renderablesElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetTextureResourceView().GetAddressOf());
 
+                        // Set sampler state of the renderable into the pixel shader
+                        m_immediateContext->PSSetSamplers(0u, 1u, renderablesElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetSamplerState().GetAddressOf());
+                    }
+                    if (renderablesElem->second->GetMaterial(MaterialIndex)->pNormal)
+                    {
+                        // Set texture resource view of the renderable into the pixel shader
+                        m_immediateContext->PSSetShaderResources(1u, 1u, renderablesElem->second->GetMaterial(MaterialIndex)->pNormal->GetTextureResourceView().GetAddressOf());
+
+                        // Set sampler state of the renderable into the pixel shader
+                        m_immediateContext->PSSetSamplers(1u, 1u, renderablesElem->second->GetMaterial(MaterialIndex)->pNormal->GetSamplerState().GetAddressOf());
+                    }
 
                     //Bind texture and sampler state of the shadow map m_shadowMapTexture
                     m_immediateContext->PSSetShaderResources(2, 1, m_shadowMapTexture->GetShaderResourceView().GetAddressOf());
@@ -586,9 +584,6 @@ namespace library
             // Set the index buffer 
             m_immediateContext->IASetIndexBuffer(m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetIndexBuffer().Get(), DXGI_FORMAT_R16_UINT, 0);
 
-            // Set primitive topology
-            m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
             // Set the input layout
             m_immediateContext->IASetInputLayout(m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetVertexLayout().Get());
 
@@ -617,13 +612,24 @@ namespace library
                 for (UINT j = 0; j < m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetNumMeshes(); ++j)
                 {
                     UINT MaterialIndex = m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMesh(j).uMaterialIndex;
-                    m_immediateContext->PSSetShaderResources(0, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pDiffuse->GetTextureResourceView().GetAddressOf());
-                    m_immediateContext->PSSetSamplers(0, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pDiffuse->GetSamplerState().GetAddressOf());
 
-                    //start slot 0? 1?
-                    m_immediateContext->PSSetShaderResources(1, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pNormal->GetTextureResourceView().GetAddressOf());
-                    m_immediateContext->PSSetSamplers(1, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pNormal->GetSamplerState().GetAddressOf());
+                    if (m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pDiffuse)
+                    {
+                        // Set texture resource view of the renderable into the pixel shader
+                        m_immediateContext->PSSetShaderResources(0, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pDiffuse->GetTextureResourceView().GetAddressOf());
 
+                        // Set sampler state of the renderable into the pixel shader
+                        m_immediateContext->PSSetSamplers(0, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pDiffuse->GetSamplerState().GetAddressOf());
+                    }
+
+                    if (m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pNormal)
+                    {
+                        // Set texture resource view of the renderable into the pixel shader
+                        m_immediateContext->PSSetShaderResources(1, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pNormal->GetTextureResourceView().GetAddressOf());
+
+                        // Set sampler state of the renderable into the pixel shader
+                        m_immediateContext->PSSetSamplers(1, 1, m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetMaterial(MaterialIndex)->pNormal->GetSamplerState().GetAddressOf());
+                    }
 
                     //Bind texture and sampler state of the shadow map m_shadowMapTexture
                     m_immediateContext->PSSetShaderResources(2, 1, m_shadowMapTexture->GetShaderResourceView().GetAddressOf());
@@ -651,27 +657,6 @@ namespace library
         for (auto modelElem = m_scenes[m_pszMainSceneName]->GetModels().begin(); modelElem != m_scenes[m_pszMainSceneName]->GetModels().end(); ++modelElem)
         {
             // Set the vertex buffer
-            /*
-            UINT aStrides[2] =
-            {
-                static_cast<UINT>(sizeof(SimpleVertex)),
-                static_cast<UINT>(sizeof(AnimationData)),
-            };
-            UINT aOffsets[2] = { 0u, 0u };
-
-            ComPtr<ID3D11Buffer> aBuffers[2]
-            {
-                modelElem->second->GetVertexBuffer(),
-                modelElem->second->GetAnimationBuffer()
-            };
-
-            for (UINT i = 0; i < 2; ++i)
-            {
-                m_immediateContext->IASetVertexBuffers(i, 1, aBuffers[i].GetAddressOf(), &aStrides[i], &aOffsets[i]);
-            }
-            */
-
-            // Set the vertex buffer
             UINT stride = sizeof(SimpleVertex);
             UINT offset = 0;
             m_immediateContext->IASetVertexBuffers(0, 1, modelElem->second->GetVertexBuffer().GetAddressOf(), &stride, &offset);
@@ -682,9 +667,6 @@ namespace library
 
             // Set the index buffer 
             m_immediateContext->IASetIndexBuffer(modelElem->second->GetIndexBuffer().Get(), DXGI_FORMAT_R16_UINT, 0);
-
-            // Set primitive topology
-            m_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             // Set the input layout
             m_immediateContext->IASetInputLayout(modelElem->second->GetVertexLayout().Get());
@@ -723,14 +705,24 @@ namespace library
             {
                 for (UINT i = 0; i < modelElem->second->GetNumMeshes(); ++i)
                 {
-                    UINT MaterialIndex = modelElem->second->GetMesh(i).uMaterialIndex;
-                    auto& b = modelElem->second;
-                    m_immediateContext->PSSetShaderResources(0, 1, modelElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetTextureResourceView().GetAddressOf());
-                    m_immediateContext->PSSetSamplers(0, 1, modelElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetSamplerState().GetAddressOf());
+                    UINT MaterialIndex = modelElem->second->GetMesh(i).uMaterialIndex;                   
+                    if (modelElem->second->GetMaterial(MaterialIndex)->pDiffuse)
+                    {
+                        // Set texture resource view of the renderable into the pixel shader
+                        m_immediateContext->PSSetShaderResources(0, 1, modelElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetTextureResourceView().GetAddressOf());
 
+                        // Set sampler state of the renderable into the pixel shader
+                        m_immediateContext->PSSetSamplers(0, 1, modelElem->second->GetMaterial(MaterialIndex)->pDiffuse->GetSamplerState().GetAddressOf());
+                    }
 
-                    m_immediateContext->PSSetShaderResources(1, 1, modelElem->second->GetMaterial(MaterialIndex)->pNormal->GetTextureResourceView().GetAddressOf());
-                    m_immediateContext->PSSetSamplers(1, 1, modelElem->second->GetMaterial(MaterialIndex)->pNormal->GetSamplerState().GetAddressOf());
+                    if (modelElem->second->GetMaterial(MaterialIndex)->pNormal)
+                    {
+                        // Set texture resource view of the renderable into the pixel shader
+                        m_immediateContext->PSSetShaderResources(1, 1, modelElem->second->GetMaterial(MaterialIndex)->pNormal->GetTextureResourceView().GetAddressOf());
+
+                        // Set sampler state of the renderable into the pixel shader
+                        m_immediateContext->PSSetSamplers(1, 1, modelElem->second->GetMaterial(MaterialIndex)->pNormal->GetSamplerState().GetAddressOf());
+                    }
 
                     //Bind texture and sampler state of the shadow map m_shadowMapTexture
                     m_immediateContext->PSSetShaderResources(2, 1, m_shadowMapTexture->GetShaderResourceView().GetAddressOf());
@@ -796,17 +788,15 @@ namespace library
     void Renderer::RenderSceneToTexture()
     {
         //Unbind current pixel shader resources
-        ID3D11ShaderResourceView* const pSRV[1] = { NULL };
-        m_immediateContext->PSSetShaderResources(0, 1, pSRV);
-        m_immediateContext->PSSetShaderResources(1, 1, pSRV);
+        ID3D11ShaderResourceView* const pSRV[2] = { NULL, NULL };
+        m_immediateContext->PSSetShaderResources(0, 2, pSRV);
         m_immediateContext->PSSetShaderResources(2, 1, pSRV);
 
-        //Change render target to the shadow map texture
-        std::shared_ptr<RenderTexture> shadowMapTexture;  
-        m_immediateContext->OMSetRenderTargets(1, shadowMapTexture->GetRenderTargetView().GetAddressOf(), m_depthStencilView.Get());
+        //Change render target to the shadow map texture  
+        m_immediateContext->OMSetRenderTargets(1, m_shadowMapTexture->GetRenderTargetView().GetAddressOf(), m_depthStencilView.Get());
 
         //Clear render target view with white color
-        m_immediateContext->ClearRenderTargetView(shadowMapTexture->GetRenderTargetView().Get(), Colors::White);
+        m_immediateContext->ClearRenderTargetView(m_shadowMapTexture->GetRenderTargetView().Get(), Colors::White);
 
         //Clear depth stencil view
         m_immediateContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -827,15 +817,16 @@ namespace library
             m_immediateContext->IASetInputLayout(renderablesElem->second->GetVertexLayout().Get());
 
             //Bind vertex shader and pixel shader
-            m_immediateContext->VSSetShader(renderablesElem->second->GetVertexShader().Get(), nullptr, 0);
-            m_immediateContext->PSSetShader(renderablesElem->second->GetPixelShader().Get(), nullptr, 0);
+            m_immediateContext->VSSetShader(m_shadowVertexShader->GetVertexShader().Get(), nullptr, 0);
+            m_immediateContext->VSSetConstantBuffers(0, 1, m_cbShadowMatrix.GetAddressOf());
+            m_immediateContext->PSSetShader(m_shadowPixelShader->GetPixelShader().Get(), nullptr, 0);
 
             //Update and bind CBShadowMatrix constant buffer
             CBShadowMatrix cb = {
                 .World = XMMatrixTranspose(renderablesElem->second->GetWorldMatrix()),
                 .View = XMMatrixTranspose(m_scenes[m_pszMainSceneName]->GetPointLight(0)->GetViewMatrix()),
                 .Projection = XMMatrixTranspose(m_scenes[m_pszMainSceneName]->GetPointLight(0)->GetProjectionMatrix()),
-                .IsVoxel = false 
+                .IsVoxel = false
             };
             m_immediateContext->UpdateSubresource(m_cbShadowMatrix.Get(), 0u, nullptr, &cb, 0u, 0u);
 
@@ -875,8 +866,9 @@ namespace library
             m_immediateContext->IASetInputLayout(m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetVertexLayout().Get());
 
             // Bind vertex shader and pixel shader
-            m_immediateContext->VSSetShader(m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetVertexShader().Get(), nullptr, 0);
-            m_immediateContext->PSSetShader(m_scenes[m_pszMainSceneName]->GetVoxels()[i]->GetPixelShader().Get(), nullptr, 0);
+            m_immediateContext->VSSetShader(m_shadowVertexShader->GetVertexShader().Get(), nullptr, 0);
+            m_immediateContext->VSSetConstantBuffers(0, 1, m_cbShadowMatrix.GetAddressOf());
+            m_immediateContext->PSSetShader(m_shadowPixelShader->GetPixelShader().Get(), nullptr, 0);
 
             //Update and bind CBShadowMatrix constant buffer
             CBShadowMatrix cb = {
@@ -886,7 +878,6 @@ namespace library
                 .IsVoxel = false
             };
             m_immediateContext->UpdateSubresource(m_cbShadowMatrix.Get(), 0u, nullptr, &cb, 0u, 0u);
-
 
             if (m_scenes[m_pszMainSceneName]->GetVoxels()[i]->HasTexture())
             {
@@ -922,8 +913,9 @@ namespace library
             m_immediateContext->IASetInputLayout(modelElem->second->GetVertexLayout().Get());
 
             // Bind vertex shader and pixel shader
-            m_immediateContext->VSSetShader(modelElem->second->GetVertexShader().Get(), nullptr, 0);
-            m_immediateContext->PSSetShader(modelElem->second->GetPixelShader().Get(), nullptr, 0);
+            m_immediateContext->VSSetShader(m_shadowVertexShader->GetVertexShader().Get(), nullptr, 0);
+            m_immediateContext->VSSetConstantBuffers(0, 1, m_cbShadowMatrix.GetAddressOf());
+            m_immediateContext->PSSetShader(m_shadowPixelShader->GetPixelShader().Get(), nullptr, 0);
 
             //Update and bind CBShadowMatrix constant buffer
             CBShadowMatrix cb = {
@@ -933,7 +925,6 @@ namespace library
                 .IsVoxel = false
             };
             m_immediateContext->UpdateSubresource(m_cbShadowMatrix.Get(), 0u, nullptr, &cb, 0u, 0u);
-
 
             if (modelElem->second->HasTexture())
             {
