@@ -53,12 +53,16 @@ namespace library
         XMMATRIX BoneTransforms[MAX_NUM_BONES];
     };
 
+    struct APointLight
+    {
+        XMFLOAT4 Position;
+        XMFLOAT4 Color;
+        XMFLOAT4 AttenuationDistance;
+    };
+
     struct CBLights
     {
-        XMFLOAT4 LightPositions[NUM_LIGHTS];
-        XMFLOAT4 LightColors[NUM_LIGHTS];
-        XMMATRIX LightViews[NUM_LIGHTS];
-        XMMATRIX LightProjections[NUM_LIGHTS];
+        APointLight PointLights[NUM_LIGHTS];
     };
 
     struct CBShadowMatrix
@@ -79,5 +83,6 @@ namespace library
         XMFLOAT3 Tangent;
         XMFLOAT3 Bitangent;
     };
+
 
 }

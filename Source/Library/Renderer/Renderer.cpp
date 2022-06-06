@@ -475,10 +475,18 @@ namespace library
 
         for (int i = 0; i < NUM_LIGHTS; i++)
         {
-            cbLights.LightPositions[i] = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetPosition();
-            cbLights.LightColors[i] = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetColor();
-            cbLights.LightViews[i] = XMMatrixTranspose(m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetViewMatrix());
-            cbLights.LightProjections[i] = XMMatrixTranspose(m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetProjectionMatrix());
+            FLOAT attenuationDistance = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetAttenuationDistance();
+            FLOAT attenuationDistanceSquared = attenuationDistance * attenuationDistance;
+            cbLights.PointLights[i] = {
+                .Position = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetPosition(),
+                .Color = m_scenes[m_pszMainSceneName]->GetPointLight(i)->GetColor(),
+                .AttenuationDistance = XMFLOAT4(
+                attenuationDistance,
+                attenuationDistance,
+                attenuationDistanceSquared,
+                attenuationDistanceSquared
+            )
+            };
         }
         m_immediateContext->UpdateSubresource(m_cbLights.Get(), 0, nullptr, &cbLights, 0, 0);
 

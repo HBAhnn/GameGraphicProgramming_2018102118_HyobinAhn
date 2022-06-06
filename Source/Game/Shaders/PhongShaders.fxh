@@ -76,13 +76,21 @@ C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C---C-C*/
 /*--------------------------------------------------------------------
   TODO: cbLights definition (remove the comment)
 --------------------------------------------------------------------*/
+struct APointLight
+{
+    float4 Position;
+    float4 Color;
+    float4 AttenuationDistance;
+};
+
 cbuffer cbLights : register(b3)
 {
-    float4 LightPositions[NUM_LIGHTS];
-    float4 LightColors[NUM_LIGHTS];
-    matrix LightViews[NUM_LIGHTS];
-    matrix LightProjections[NUM_LIGHTS];
-
+    //float4 LightPositions[NUM_LIGHTS];
+    //float4 LightColors[NUM_LIGHTS];
+    //matrix LightViews[NUM_LIGHTS];
+    //matrix LightProjections[NUM_LIGHTS];
+    
+    APointLight PointLights[NUM_LIGHTS];
 };
 
 //--------------------------------------------------------------------------------------
@@ -164,10 +172,6 @@ PS_PHONG_INPUT VSPhong(VS_PHONG_INPUT input)
     output.Normal = normalize(mul(float4(input.Normal, 0), World).xyz);
     output.WorldPosition = mul(input.Position, World);
     
-    output.LightViewPosition = mul(input.Position, World);
-    output.LightViewPosition = mul(output.LightViewPosition, LightViews[0]);
-    output.LightViewPosition = mul(output.LightViewPosition, LightProjections[0]);
-	
     if (HasNormalMap)
     {
     // Calculate the tangent vector against the world matrix only and then normalize the final value.
@@ -228,48 +232,30 @@ float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
         normal = normalize(bumpNormal);
     }
     
-    float4 color = txDiffuse[0].Sample(samLinear[0], input.TexCoord);
-    float3 ambient = float3(0.1f, 0.1f, 0.1f) * color.rgb;
-    float2 depthTexCoord;
-    depthTexCoord.x = input.LightViewPosition.x / input.LightViewPosition.w / 2.0f + 0.5f;
-    depthTexCoord.y = -input.LightViewPosition.y / input.LightViewPosition.w / 2.0f + 0.5f;
-    float closestDepth = shadowMapTexture.Sample(shadowMapSampler, depthTexCoord).r;
-    float currentDepth = input.LightViewPosition.z / input.LightViewPosition.w;
-    closestDepth = LinearizeDepth(closestDepth);
-    currentDepth = LinearizeDepth(currentDepth);
-    if (currentDepth > closestDepth + 0.001f)
-        return float4(ambient, 1.0f);
-
+    float3 ambient = float3(0.1f, 0.1f, 0.1f);
+    float3 diffuse = float3(0, 0, 0);
+    float3 specular = float3(0, 0, 0);
     
+    float3 viewdirection = normalize(CameraPosition.xyz - input.WorldPosition);
+       
 	for (uint i = 0; i < NUM_LIGHTS; ++i)
 	{
-		ambient += float4(float3(0.1f, 0.1f, 0.1f) * LightColors[i].xyz, 1.0f);
-	}
-	ambient *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
-    
-
-	float3 viewdirection = normalize(CameraPosition.xyz - input.WorldPosition);
-    float3 diffuse = float3(0, 0, 0);    
-
-	for (uint i = 0; i < NUM_LIGHTS; ++i)   
-	{
-		float3 lightDirection = normalize(input.WorldPosition - LightPositions[i].xyz);
-        diffuse += saturate(dot(normal, -lightDirection)) * LightColors[i];
-    }
-	diffuse *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
-
-
-
-	float3 specular = float3(0,0,0);
-    float3 viewDirection = normalize(CameraPosition.xyz - input.WorldPosition);
-	
-	for (uint i = 0; i < NUM_LIGHTS; ++i)   
-	{
-        float3 lightDirection = normalize(input.WorldPosition - LightPositions[i].xyz);
+        float r2 = dot(input.WorldPosition - PointLights[i].Position.xyz, input.WorldPosition - PointLights[i].Position.xyz);
+        
+        float r0 = PointLights[i].AttenuationDistance.x;
+        
+        float attenuation = (r0 * r0) / (r2 + 0.000001f);
+        
+        ambient += float4(float3(0.1f, 0.1f, 0.1f) * PointLights[i].Color.xyz, 1.0f) * attenuation;
+        
+        float3 lightDirection = normalize(input.WorldPosition - PointLights[i].Position.xyz);
+        diffuse += saturate(dot(normal, -lightDirection)) * PointLights[i].Color * attenuation;
+        
         float3 reflectDirection = reflect(lightDirection, normal);
-		 specular += pow(saturate(dot(reflectDirection, viewDirection)), 20) * LightColors[i];
-	}
-
+        specular += pow(saturate(dot(reflectDirection, viewdirection)), 20) * PointLights[0].Color * attenuation;
+    }
+	ambient *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
+	diffuse *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
 	specular *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
  
 	
