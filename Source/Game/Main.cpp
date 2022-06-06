@@ -235,14 +235,12 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-    /*
-    // Environment Map
-    std::shared_ptr<library::VertexShader> environmentMapVertexShader = std::make_shared<library::VertexShader>(L"Shaders/Shaders.fxh", "VSEnvironmentMap", "vs_5_0");
+
+    std::shared_ptr<library::VertexShader> environmentMapVertexShader = std::make_shared<library::VertexShader>(L"Shaders/EnvironmentShader.fxh", "VSEnvironmentMap", "vs_5_0");
     if (FAILED(mainScene->AddVertexShader(L"EnvironmentMapShader", environmentMapVertexShader)))
     {
         return 0;
     }
-    */
 
     //----------------------------------------------------------------------------------------------------
 
@@ -270,14 +268,12 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-    /*
-    // Environment Map
-    std::shared_ptr<library::PixelShader> environmentMapPixelShader = std::make_shared<library::PixelShader>(L"Shaders/Shaders.fxh", "PSEnvironmentMap", "ps_5_0");
+    // Envir
+    std::shared_ptr<library::PixelShader> environmentMapPixelShader = std::make_shared<library::PixelShader>(L"Shaders/EnvironmentShader.fxh", "PSEnvironmentMap", "ps_5_0");
     if (FAILED(mainScene->AddPixelShader(L"EnvironmentMapShader", environmentMapPixelShader)))
     {
         return 0;
     }
-    */
 
     //*----------------------------------------------------------------------------------------------
 
@@ -321,31 +317,29 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         }
     --------------------------------------------------------------------*/
 
+    //Light Attenuation
     XMFLOAT4 color;
 
-    //Light Attenuation
-    XMStoreFloat4(&color, Colors::White);
-    std::shared_ptr<Cube> floorCube = std::make_shared<Cube>(color);
-    floorCube->Scale(5.0f, 1.0f, 5.0f);
-    floorCube->Translate(XMVectorSet(0.0f, -10.0f, 0.0f, 1.0f));
-
-    if (FAILED(mainScene->AddRenderable(L"FloorCube", floorCube)))
+    /*-------------------Light Attenuation Model-----------------------------
+    std::shared_ptr<library::Model> nanosuit = std::make_shared<library::Model>(L"Content/Nanosuit/nanosuit.obj");
+    if (FAILED(mainScene->AddModel(L"Nanosuit", nanosuit)))
     {
         return 0;
     }
-    if (FAILED(mainScene->SetVertexShaderOfRenderable(L"FloorCube", L"PhongShader")))
+    if (FAILED(mainScene->SetVertexShaderOfModel(L"Nanosuit", L"PhongShader")))
     {
         return 0;
     }
-    if (FAILED(mainScene->SetPixelShaderOfRenderable(L"FloorCube", L"PhongShader")))
+    if (FAILED(mainScene->SetPixelShaderOfModel(L"Nanosuit", L"PhongShader")))
     {
         return 0;
     }
+    */
 
     XMStoreFloat4(&color, Colors::Orange);
-    
+
     std::shared_ptr<library::PointLight> directionalLight = std::make_shared<library::PointLight>(
-        XMFLOAT4(0.f, -5.0f, 0.f, 1.0f),
+        XMFLOAT4(-100.f, -5.0f, 0.f, 1.0f),
         color,
         400.0f
         );
@@ -353,10 +347,10 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-    
+
 
     std::shared_ptr<Cube> pointLight = std::make_shared<Cube>(color);
-    pointLight->Translate(XMVectorSet(0.0f, -5.0f, 0.0f, 0.0f));
+    pointLight->Translate(XMVectorSet(-100.0f, -5.0f, 0.0f, 0.0f));
     if (FAILED(mainScene->AddRenderable(L"PointLight", pointLight)))
     {
         return 0;
@@ -369,15 +363,36 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
-
+    
+    //Environment Shader
+    std::shared_ptr<library::Model> nanosuit = std::make_shared<library::Model>(L"Content/Nanosuit/nanosuit.obj");
+    if (FAILED(mainScene->AddModel(L"Nanosuit", nanosuit)))
+    {
+        return 0;
+    }
+    if (FAILED(mainScene->SetVertexShaderOfModel(L"Nanosuit", L"EnvironmentMapShader")))
+    {
+        return 0;
+    }
+    if (FAILED(mainScene->SetPixelShaderOfModel(L"Nanosuit", L"EnvironmentMapShader")))
+    {
+        return 0;
+    }
     /*
     XMStoreFloat4(&color, Colors::White);
-    std::shared_ptr<RotatingPointLight> rotatingDirectionalLight = std::make_shared<RotatingPointLight>(
-        XMFLOAT4(0.0f, 300.0f, 0.0f, 1.0f),
-        color,
-        400.0f
-        );
-    if (FAILED(mainScene->AddPointLight(1, rotatingDirectionalLight)))
+    std::shared_ptr<Cube> floorCube = std::make_shared<Cube>(color);
+    floorCube->Scale(5.0f, 1.0f, 5.0f);
+    floorCube->Translate(XMVectorSet(0.0f, -10.0f, 0.0f, 1.0f));
+
+    if (FAILED(mainScene->AddRenderable(L"FloorCube", floorCube)))
+    {
+        return 0;
+    }
+    if (FAILED(mainScene->SetVertexShaderOfRenderable(L"FloorCube", L"EnvironmentMapShader")))
+    {
+        return 0;
+    }
+    if (FAILED(mainScene->SetPixelShaderOfRenderable(L"FloorCube", L"EnvironmentMapShader")))
     {
         return 0;
     }

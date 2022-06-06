@@ -742,6 +742,24 @@ namespace library
                         m_immediateContext->PSSetSamplers(0u, 1u, Texture::s_samplers[static_cast<size_t>(textureSamplerType)].GetAddressOf());
                     }
 
+                    //Skybox Reflection
+                    if (m_scenes[m_pszMainSceneName]->GetSkyBox())
+                    {
+                        for (UINT j = 0u; j < m_scenes[m_pszMainSceneName]->GetSkyBox()->GetNumMeshes(); ++j)
+                        {
+                            UINT SkyMaterialIndex = m_scenes[m_pszMainSceneName]->GetSkyBox()->GetMesh(j).uMaterialIndex;
+                            if (m_scenes[m_pszMainSceneName]->GetSkyBox()->GetMaterial(SkyMaterialIndex)->pDiffuse)
+                            {
+                                // Set texture resource view of the renderable into the pixel shader
+                                m_immediateContext->PSSetShaderResources(0u, 1u, m_scenes[m_pszMainSceneName]->GetSkyBox()->GetSkyboxTexture()->GetTextureResourceView().GetAddressOf());
+
+                                // Set sampler state of the renderable into the pixel shader
+                                eTextureSamplerType textureSamplerType = m_scenes[m_pszMainSceneName]->GetSkyBox()->GetSkyboxTexture()->GetSamplerType();
+                                m_immediateContext->PSSetSamplers(0u, 1u, Texture::s_samplers[static_cast<size_t>(textureSamplerType)].GetAddressOf());
+                            }
+                        }
+                    }
+
                     //Bind texture and sampler state of the shadow map m_shadowMapTexture
                     //m_immediateContext->PSSetShaderResources(2, 1, m_shadowMapTexture->GetShaderResourceView().GetAddressOf());
                     //m_immediateContext->PSSetSamplers(2, 1, m_shadowMapTexture->GetSamplerState().GetAddressOf());
