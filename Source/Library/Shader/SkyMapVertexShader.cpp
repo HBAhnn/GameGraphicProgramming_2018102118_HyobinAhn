@@ -19,6 +19,11 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: SkyMapVertexShader::SkyMapVertexShader definition (remove the comment)
     --------------------------------------------------------------------*/
+    SkyMapVertexShader::SkyMapVertexShader(_In_ PCWSTR pszFileName, _In_ PCSTR pszEntryPoint, _In_ PCSTR pszShaderModel)
+        : VertexShader(pszFileName, pszEntryPoint, pszShaderModel)
+    {
+
+    }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   SkyMapVertexShader::Initialize
@@ -34,4 +39,32 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: SkyMapVertexShader::Initialize definition (remove the comment)
     --------------------------------------------------------------------*/
+    HRESULT SkyMapVertexShader::Initialize(_In_ ID3D11Device* pDevice)
+    {
+        //Compile a vertex shader
+        ComPtr<ID3DBlob> pVSBlob = nullptr;
+        HRESULT hr = compile(pVSBlob.GetAddressOf());
+        if (FAILED(hr))
+            return hr;
+
+        //Create the Direct 3D Vertex Shader object
+        hr = pDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, m_vertexShader.GetAddressOf());
+        if (FAILED(hr))
+            return hr;
+
+        //Define the input layout
+        D3D11_INPUT_ELEMENT_DESC layout[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        };
+        UINT numElements = ARRAYSIZE(layout);
+
+        //Create the input layout
+        hr = pDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
+            pVSBlob->GetBufferSize(), &m_vertexLayout);
+        if (FAILED(hr))
+            return hr;
+
+        return S_OK;
+    }
 }

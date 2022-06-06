@@ -212,19 +212,19 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     std::shared_ptr<library::Scene> mainScene = std::make_shared<library::Scene>(L"HeightMap.txt");
 
     // Phong
-    std::shared_ptr<library::VertexShader> phongVertexShader = std::make_shared<library::VertexShader>(L"Shaders/Shaders.fxh", "VSPhong", "vs_5_0");
+    std::shared_ptr<library::VertexShader> phongVertexShader = std::make_shared<library::VertexShader>(L"Shaders/PhongShaders.fxh", "VSPhong", "vs_5_0");
     if (FAILED(mainScene->AddVertexShader(L"PhongShader", phongVertexShader)))
     {
         return 0;
     }
     // Voxel
-    std::shared_ptr<library::VertexShader> voxelVertexShader = std::make_shared<library::VertexShader>(L"Shaders/Shaders.fxh", "VSVoxel", "vs_5_0");
+    std::shared_ptr<library::VertexShader> voxelVertexShader = std::make_shared<library::VertexShader>(L"Shaders/VoxelShaders.fxh", "VSVoxel", "vs_5_0");
     if (FAILED(mainScene->AddVertexShader(L"VoxelShader", voxelVertexShader)))
     {
         return 0;
     }
     // Light Cube
-    std::shared_ptr<library::VertexShader> lightVertexShader = std::make_shared<library::VertexShader>(L"Shaders/Shaders.fxh", "VSLightCube", "vs_5_0");
+    std::shared_ptr<library::VertexShader> lightVertexShader = std::make_shared<library::VertexShader>(L"Shaders/PhongShaders.fxh", "VSLightCube", "vs_5_0");
     if (FAILED(mainScene->AddVertexShader(L"LightShader", lightVertexShader)))
     {
         return 0;
@@ -235,27 +235,31 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    /*
     // Environment Map
     std::shared_ptr<library::VertexShader> environmentMapVertexShader = std::make_shared<library::VertexShader>(L"Shaders/Shaders.fxh", "VSEnvironmentMap", "vs_5_0");
     if (FAILED(mainScene->AddVertexShader(L"EnvironmentMapShader", environmentMapVertexShader)))
     {
         return 0;
     }
+    */
+
+    //----------------------------------------------------------------------------------------------------
 
     // Phong
-    std::shared_ptr<library::PixelShader> phongPixelShader = std::make_shared<library::PixelShader>(L"Shaders/Shaders.fxh", "PSPhong", "ps_5_0");
+    std::shared_ptr<library::PixelShader> phongPixelShader = std::make_shared<library::PixelShader>(L"Shaders/PhongShaders.fxh", "PSPhong", "ps_5_0");
     if (FAILED(mainScene->AddPixelShader(L"PhongShader", phongPixelShader)))
     {
         return 0;
     }
     // Voxel
-    std::shared_ptr<library::PixelShader> voxelPixelShader = std::make_shared<library::PixelShader>(L"Shaders/Shaders.fxh", "PSVoxel", "ps_5_0");
+    std::shared_ptr<library::PixelShader> voxelPixelShader = std::make_shared<library::PixelShader>(L"Shaders/VoxelShaders.fxh", "PSVoxel", "ps_5_0");
     if (FAILED(mainScene->AddPixelShader(L"VoxelShader", voxelPixelShader)))
     {
         return 0;
     }
     // Light Cube
-    std::shared_ptr<library::PixelShader> lightPixelShader = std::make_shared<library::PixelShader>(L"Shaders/Shaders.fxh", "PSLightCube", "ps_5_0");
+    std::shared_ptr<library::PixelShader> lightPixelShader = std::make_shared<library::PixelShader>(L"Shaders/PhongShaders.fxh", "PSLightCube", "ps_5_0");
     if (FAILED(mainScene->AddPixelShader(L"LightShader", lightPixelShader)))
     {
         return 0;
@@ -266,12 +270,16 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    /*
     // Environment Map
     std::shared_ptr<library::PixelShader> environmentMapPixelShader = std::make_shared<library::PixelShader>(L"Shaders/Shaders.fxh", "PSEnvironmentMap", "ps_5_0");
     if (FAILED(mainScene->AddPixelShader(L"EnvironmentMapShader", environmentMapPixelShader)))
     {
         return 0;
     }
+    */
+
+    //*----------------------------------------------------------------------------------------------
 
     if (FAILED(mainScene->SetVertexShaderOfVoxel(L"VoxelShader")))
     {
@@ -314,8 +322,28 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     --------------------------------------------------------------------*/
 
     XMFLOAT4 color;
-    XMStoreFloat4(&color, Colors::Orange);
 
+    //Light Attenuation
+    XMStoreFloat4(&color, Colors::White);
+    std::shared_ptr<Cube> floorCube = std::make_shared<Cube>(color);
+    floorCube->Translate(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+    floorCube->Scale(20.0f, 0.1f, 20.0f);
+
+    if (FAILED(mainScene->AddRenderable(L"FloorCube", floorCube)))
+    {
+        return 0;
+    }
+    if (FAILED(mainScene->SetVertexShaderOfRenderable(L"FloorCube", L"PhongShader")))
+    {
+        return 0;
+    }
+    if (FAILED(mainScene->SetPixelShaderOfRenderable(L"FloorCube", L"PhongShader")))
+    {
+        return 0;
+    }
+
+    XMStoreFloat4(&color, Colors::Orange);
+    
     std::shared_ptr<library::PointLight> directionalLight = std::make_shared<library::PointLight>(
         XMFLOAT4(0.f, 30.f, 0.f, 1.0f),
         color,
@@ -325,6 +353,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    
 
     std::shared_ptr<Cube> pointLight = std::make_shared<Cube>(color);
     pointLight->Translate(XMVectorSet(0.0f, 30.0f, 0.0f, 0.0f));
@@ -341,6 +370,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         return 0;
     }
 
+    /*
     XMStoreFloat4(&color, Colors::White);
     std::shared_ptr<RotatingPointLight> rotatingDirectionalLight = std::make_shared<RotatingPointLight>(
         XMFLOAT4(0.0f, 300.0f, 0.0f, 1.0f),
@@ -351,6 +381,7 @@ INT WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     {
         return 0;
     }
+    */
 
     if (FAILED(game->GetRenderer()->AddScene(L"VoxelMap", mainScene)))
     {

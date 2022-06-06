@@ -230,6 +230,7 @@ float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
         
         // Normalize the resulting bump normal and replace existing normal     
         normal = normalize(bumpNormal);
+        
     }
     
     float3 ambient = float3(0.1f, 0.1f, 0.1f);
@@ -259,7 +260,7 @@ float4 PSPhong(PS_PHONG_INPUT input) : SV_Target
 	specular *= txDiffuse[0].Sample(samLinear[0], input.TexCoord);
  
 	
-	return float4(ambient + diffuse + specular, 1);
+    return float4(ambient + diffuse + specular, 1);
 }
 
 

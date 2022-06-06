@@ -43,6 +43,22 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: Skybox::Initialize definition (remove the comment)
     --------------------------------------------------------------------*/
+    HRESULT Skybox::Initialize(_In_ ID3D11Device* pDevice, _In_ ID3D11DeviceContext* pImmediateContext)
+    {
+        HRESULT hr;
+        hr = Model::Initialize(pDevice, pImmediateContext);
+        if (FAILED(hr))
+            return hr;
+
+        Scale(m_scale, m_scale, m_scale);
+
+        m_aMeshes[0].uMaterialIndex = 0;
+
+        m_aMaterials[0]->pDiffuse = std::make_shared<Texture>(m_cubeMapFileName);
+        m_aMaterials[0]->pDiffuse->Initialize(pDevice, pImmediateContext);
+
+        return S_OK;
+    }
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Skybox::GetSkyboxTexture
@@ -55,6 +71,11 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: Skybox::GetSkyboxTexture definition (remove the comment)
     --------------------------------------------------------------------*/
+    const std::shared_ptr<Texture>& Skybox::GetSkyboxTexture() const
+    {
+        return m_aMaterials[0]->pDiffuse;
+    }
+
 
     /*M+M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M+++M
       Method:   Skybox::initSingleMesh
@@ -69,4 +90,47 @@ namespace library
     /*--------------------------------------------------------------------
       TODO: Skybox::initSingleMesh definition (remove the comment)
     --------------------------------------------------------------------*/
+    void Skybox::initSingleMesh(_In_ UINT uMeshIndex, _In_ const aiMesh* pMesh)
+    {
+        //Populating the vertex attribute, including tangent and bitangent
+        const aiVector3D zero3d(0.0f, 0.0f, 0.0f);
+
+        for (UINT i = 0u; i < pMesh->mNumVertices; ++i)
+        {
+            const aiVector3D& position = pMesh->mVertices[i];
+            const aiVector3D& normal = pMesh->mNormals[i];
+            const aiVector3D& texCoord = pMesh->HasTextureCoords(0u) ? pMesh->mTextureCoords[0][i] : zero3d;
+            const aiVector3D& tangent = pMesh->HasTangentsAndBitangents() ? pMesh->mTangents[i] : zero3d;
+            const aiVector3D& bitangent = pMesh->HasTangentsAndBitangents() ? pMesh->mBitangents[i] : zero3d;
+
+            SimpleVertex vertex =
+            {
+                .Position = XMFLOAT3(position.x, position.y, position.z),
+                .TexCoord = XMFLOAT2(texCoord.x, texCoord.y),
+                .Normal = XMFLOAT3(normal.x, normal.y, normal.z)
+            };
+
+            m_aVertices.push_back(vertex);
+
+            m_aNormalData.push_back(
+                NormalData{
+                    .Tangent = XMFLOAT3(tangent.x, tangent.y, tangent.z),
+                    .Bitangent = XMFLOAT3(bitangent.x, bitangent.y, bitangent.z)
+                }
+            );
+        }
+
+        // Populate the index buffer 
+        for (UINT i = 0u; i < pMesh->mNumFaces; ++i)
+        {
+            const aiFace& face = pMesh->mFaces[i];
+            assert(face.mNumIndices == 3u);
+
+            m_aIndices.push_back(static_cast<WORD>(face.mIndices[2]));
+            m_aIndices.push_back(static_cast<WORD>(face.mIndices[1]));
+            m_aIndices.push_back(static_cast<WORD>(face.mIndices[0]));
+        }
+
+        initMeshBones(uMeshIndex, pMesh);
+    }
 }
